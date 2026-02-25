@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solovay-Kitaev Algorithm — Introduction to Quantum Computing</title>
+
+<!-- MathJax 3 with QC macros -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    macros: {
+      ket: ['{|#1\\rangle}', 1],
+      bra: ['{\\langle#1|}', 1],
+      SU: ['{\\mathrm{SU}(#1)}', 1],
+    },
+    tags: 'ams',
+  },
+  options: {
+    renderActions: { addMenu: [0, '', ''] }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<style>
+:root {
+  --spacecadet: #0D284C;
+  --munsell: #008FA8;
+  --banana: #FFD932;
+  --cgblue: #007CA5;
+  --isabelline: #EAEDEA;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Times New Roman', 'Georgia', serif;
+  font-size: 18px; line-height: 1.6;
+  color: var(--spacecadet); background: #fcfcfc;
+}
+h1, h2, h3, h4 { font-family: system-ui, -apple-system, sans-serif; color: var(--cgblue); }
+a { color: var(--munsell); }
+
+nav.top-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.5em 1.5em; border-bottom: 1px solid var(--isabelline);
+  font-family: system-ui, sans-serif; font-size: 0.85em; background: #fff;
+}
+nav.top-nav a { text-decoration: none; color: var(--cgblue); }
+nav.top-nav a:hover { text-decoration: underline; }
+
+.page-title {
+  text-align: center; padding: 1em 1.5em 0.3em;
+  border-bottom: 2px solid var(--cgblue); margin: 0 1.5em;
+}
+.page-title h1 { font-size: 1.8em; margin-bottom: 0.1em; }
+.page-title .subtitle { font-size: 1.05em; color: #555; font-family: system-ui, sans-serif; margin-bottom: 0.3em; }
+
+.main-container {
+  display: flex; max-width: 1350px; margin: 1.5em auto; padding: 0 1.5em; gap: 1.5em;
+}
+.viz-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1em; }
+.controls-panel {
+  width: 360px; flex-shrink: 0;
+  background: var(--isabelline); border-radius: 8px; padding: 1.2em;
+  font-family: system-ui, sans-serif; font-size: 0.85em;
+  max-height: calc(100vh - 160px); overflow-y: auto;
+}
+
+canvas {
+  display: block; width: 100%; border: 1px solid #ddd; border-radius: 8px;
+  background: #fff;
+}
+
+.ctrl-section { margin-bottom: 1.2em; }
+.ctrl-section h3 {
+  font-size: 0.95em; margin-bottom: 0.5em; padding-bottom: 0.3em;
+  border-bottom: 1px solid #ccc; color: var(--cgblue);
+}
+.ctrl-row {
+  display: flex; align-items: center; gap: 0.5em; margin-bottom: 0.5em;
+}
+.ctrl-row label { width: 120px; font-weight: 600; color: var(--spacecadet); font-size: 0.9em; }
+.ctrl-row input[type="range"] { flex: 1; accent-color: var(--cgblue); }
+.ctrl-row .val { width: 35px; text-align: right; font-family: monospace; font-size: 0.9em; }
+
+.btn-row { display: flex; gap: 0.4em; margin-bottom: 0.5em; }
+.action-btn {
+  flex: 1; padding: 0.6em 0; border: 2px solid var(--cgblue); border-radius: 6px;
+  background: #fff; color: var(--cgblue); font-weight: 700; font-size: 0.95em;
+  cursor: pointer; transition: all 0.15s; font-family: system-ui, sans-serif;
+}
+.action-btn:hover { background: var(--cgblue); color: #fff; }
+.action-btn:active { background: var(--spacecadet); border-color: var(--spacecadet); color: #fff; }
+.action-btn.reset { border-color: var(--munsell); color: var(--munsell); }
+.action-btn.reset:hover { background: var(--munsell); color: #fff; }
+
+.info-display {
+  background: #fff; border-radius: 6px; padding: 0.8em;
+  border: 1px solid #ddd; font-size: 0.9em; margin-bottom: 0.6em;
+}
+.info-display .label { font-weight: 600; color: var(--cgblue); margin-bottom: 0.2em; }
+.info-row { display: flex; justify-content: space-between; padding: 0.15em 0; }
+.info-row .key { color: #555; }
+.info-row .value { font-family: monospace; font-weight: 600; }
+
+.info-box {
+  background: rgba(0,124,165,0.05); border-left: 4px solid var(--cgblue);
+  border-radius: 0 6px 6px 0; padding: 0.8em 1em; margin: 1em 1.5em 1.5em;
+  font-size: 0.9em;
+}
+.info-box strong { color: var(--cgblue); font-family: system-ui, sans-serif; }
+
+.legend { font-size: 0.8em; color: #666; }
+.legend-item { display: flex; align-items: center; gap: 0.4em; margin: 0.2em 0; }
+.legend-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+.legend-line { width: 14px; height: 3px; flex-shrink: 0; border-radius: 1px; }
+
+.recurrence-box {
+  background: rgba(255,217,50,0.15); border: 1px solid var(--banana);
+  border-radius: 6px; padding: 0.7em; text-align: center;
+  font-size: 1em; margin-bottom: 0.6em;
+}
+
+@media (max-width: 850px) {
+  .main-container { flex-direction: column; }
+  .controls-panel { width: 100%; max-height: none; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html">&larr; All Lectures</a>
+  <span><strong>Introduction to Quantum Computing</strong></span>
+  <span></span>
+</nav>
+
+<div class="page-title">
+  <h1>The Solovay-Kitaev Algorithm</h1>
+  <p class="subtitle">Recursive gate compilation on \(\SU{2}\)</p>
+</div>
+
+<div class="main-container">
+  <div class="viz-panel">
+    <canvas id="skCanvas" width="750" height="550"></canvas>
+    <canvas id="logCanvas" width="750" height="240"></canvas>
+  </div>
+  <div class="controls-panel">
+
+    <div class="ctrl-section">
+      <h3>Recursion Control</h3>
+      <div class="ctrl-row">
+        <label>Depth n</label>
+        <input type="range" id="depthSlider" min="0" max="5" value="0" step="1">
+        <span class="val" id="depthVal">0</span>
+      </div>
+      <div class="btn-row">
+        <button class="action-btn" id="stepBtn" onclick="skStep()">Step</button>
+        <button class="action-btn reset" onclick="skReset()">Reset</button>
+      </div>
+      <div class="btn-row">
+        <button class="action-btn" onclick="skAutoRun()">Auto Run</button>
+        <button class="action-btn" onclick="skNewTarget()" style="border-color:var(--munsell);color:var(--munsell);">New Target</button>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>Algorithm State</h3>
+      <div class="info-display">
+        <div class="info-row"><span class="key">Recursion depth n</span><span class="value" id="infoDepth">0</span></div>
+        <div class="info-row"><span class="key">Approx. error &epsilon;<sub>n</sub></span><span class="value" id="infoEps">--</span></div>
+        <div class="info-row"><span class="key">Gate sequence length l<sub>n</sub></span><span class="value" id="infoLen">--</span></div>
+        <div class="info-row"><span class="key">Initial error &epsilon;<sub>0</sub></span><span class="value" id="infoEps0">--</span></div>
+        <div class="info-row"><span class="key">Constant c</span><span class="value" id="infoC">--</span></div>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>Recurrence Relation</h3>
+      <div class="recurrence-box" id="recurrenceBox">
+        \(\varepsilon_n = c \cdot \varepsilon_{n-1}^{3/2}\)
+      </div>
+      <div class="info-display">
+        <div class="info-row"><span class="key">l<sub>n</sub> = 5<sup>n</sup> &middot; l<sub>0</sub></span><span class="value" id="infoLenFormula">--</span></div>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>Legend (SU(2) Schematic)</h3>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:#e74c3c;"></div> Target unitary U</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#007CA5;"></div> Current approx. U<sub>n</sub></div>
+        <div class="legend-item"><div class="legend-swatch" style="background:rgba(0,143,168,0.4);"></div> Previous approx. U<sub>n-1</sub></div>
+        <div class="legend-item"><div class="legend-line" style="background:#FFD932;"></div> Residual &Delta; = U &middot; U<sub>n-1</sub><sup>&dagger;</sup></div>
+        <div class="legend-item"><div class="legend-line" style="background:#2ecc71;"></div> V decomposition</div>
+        <div class="legend-item"><div class="legend-line" style="background:#9b59b6;"></div> W decomposition</div>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>About</h3>
+      <p style="font-size:0.82em; color:#555;">
+        Based on the Dawson-Nielsen construction
+        (<a href="https://arxiv.org/abs/quant-ph/0505030" style="font-size:0.95em;">arXiv:quant-ph/0505030</a>).
+        The visualization shows a schematic of the recursive
+        approximation near the identity in \(\SU{2}\).
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<div class="info-box">
+  <strong>The Solovay-Kitaev Theorem.</strong>
+  The Solovay-Kitaev theorem shows that any gate set generating a dense subgroup of \(\SU{2}\)
+  can approximate any unitary to accuracy \(\varepsilon\) using \(O(\log^{3.97}(1/\varepsilon))\) gates.
+  The algorithm decomposes the residual error as a group commutator \(VWV^\dagger W^\dagger\),
+  where \(V\) and \(W\) are each \(\sqrt{\varepsilon}\)-close to identity.
+  Recursive approximation of \(V\) and \(W\) yields \(\varepsilon^{3/2}\) convergence per level.
+</div>
+
+<script>
+(function() {
+  const skC = document.getElementById('skCanvas');
+  const skCtx = skC.getContext('2d');
+  const lgC = document.getElementById('logCanvas');
+  const lgCtx = lgC.getContext('2d');
+  const depthSlider = document.getElementById('depthSlider');
+  const depthVal = document.getElementById('depthVal');
+
+  const COLORS = {
+    spacecadet: '#0D284C',
+    munsell: '#008FA8',
+    banana: '#FFD932',
+    cgblue: '#007CA5',
+    isabelline: '#EAEDEA',
+    target: '#e74c3c',
+    vColor: '#2ecc71',
+    wColor: '#9b59b6',
+  };
+
+  // Algorithm state
+  let currentDepth = 0;
+  let maxAnimDepth = 0;
+  let animating = false;
+  let autoRunning = false;
+
+  // Simulation parameters (working in a schematic 2D representation of SU(2) near identity)
+  const c_const = 4.0; // recurrence constant
+  let l0 = 3; // base gate sequence length
+  let eps0 = 0.45; // initial approximation error
+
+  // Target position (random on the schematic circle)
+  let targetAngle = 1.2;
+  let targetRadius = 0.7;
+
+  // Approximation history: each level stores {x, y, eps, vAngle, wAngle}
+  let levels = [];
+
+  function initLevels() {
+    levels = [];
+    const tx = targetRadius * Math.cos(targetAngle);
+    const ty = targetRadius * Math.sin(targetAngle);
+
+    // Level 0: basic approximation from gate set
+    // Place it eps0 away from target
+    const approxAngle = targetAngle + eps0 * 1.8;
+    const approxR = targetRadius + eps0 * 0.3;
+    levels.push({
+      x: approxR * Math.cos(approxAngle),
+      y: approxR * Math.sin(approxAngle),
+      eps: eps0,
+      vAngle: 0,
+      wAngle: 0,
+      residualX: 0,
+      residualY: 0,
+    });
+
+    // Compute the residual and decomposition for each subsequent level
+    let prevEps = eps0;
+    for (let n = 1; n <= 5; n++) {
+      const newEps = c_const * Math.pow(prevEps, 1.5);
+      // Each level gets closer to target
+      const frac = newEps / eps0;
+      const nx = tx + (levels[0].x - tx) * frac;
+      const ny = ty + (levels[0].y - ty) * frac;
+
+      // V and W decomposition angles (schematic)
+      const residEps = Math.sqrt(prevEps);
+      const vAngle = targetAngle + Math.PI * 0.3 + n * 0.4;
+      const wAngle = targetAngle - Math.PI * 0.25 + n * 0.3;
+
+      levels.push({
+        x: nx,
+        y: ny,
+        eps: newEps,
+        vAngle: vAngle,
+        wAngle: wAngle,
+        residualX: (levels[n-1].x - tx) * 0.5,
+        residualY: (levels[n-1].y - ty) * 0.5,
+        sqrtEps: residEps,
+      });
+
+      prevEps = newEps;
+    }
+  }
+
+  function resize(canvas, baseH) {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = baseH * dpr / (750 / rect.width);
+    canvas.style.height = baseH * (rect.width / 750) + 'px';
+  }
+
+  function resizeAll() {
+    resize(skC, 550);
+    resize(lgC, 240);
+    drawAll();
+  }
+  window.addEventListener('resize', resizeAll);
+
+  function drawArrowXY(ctx, x1, y1, x2, y2, color, lineWidth, headSize, dashed) {
+    const dx = x2-x1, dy = y2-y1;
+    const len = Math.sqrt(dx*dx+dy*dy);
+    if (len < 2) return;
+    const ux = dx/len, uy = dy/len;
+
+    ctx.beginPath();
+    if (dashed) ctx.setLineDash(dashed);
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+    if (dashed) ctx.setLineDash([]);
+
+    const hs = headSize || 8;
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - ux*hs - uy*hs*0.35, y2 - uy*hs + ux*hs*0.35);
+    ctx.lineTo(x2 - ux*hs + uy*hs*0.35, y2 - uy*hs - ux*hs*0.35);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
+  function drawSKSchematic() {
+    const w = skC.width;
+    const h = skC.height;
+    skCtx.clearRect(0, 0, w, h);
+
+    const cx = w * 0.45;
+    const cy = h * 0.48;
+    const R = Math.min(w, h) * 0.38;
+
+    // Title on canvas
+    skCtx.font = 'bold ' + Math.max(14, w*0.02) + 'px system-ui, sans-serif';
+    skCtx.fillStyle = COLORS.cgblue;
+    skCtx.textAlign = 'center';
+    skCtx.fillText('SU(2) near the identity (schematic)', cx, 25);
+
+    // Main circle representing a neighborhood in SU(2)
+    skCtx.beginPath();
+    skCtx.arc(cx, cy, R, 0, 2*Math.PI);
+    skCtx.strokeStyle = '#ccc';
+    skCtx.lineWidth = 2;
+    skCtx.stroke();
+    skCtx.fillStyle = 'rgba(234,237,234,0.3)';
+    skCtx.fill();
+
+    // Identity at center
+    skCtx.beginPath();
+    skCtx.arc(cx, cy, 4, 0, 2*Math.PI);
+    skCtx.fillStyle = '#999';
+    skCtx.fill();
+    skCtx.font = Math.max(12, w*0.016) + 'px system-ui, sans-serif';
+    skCtx.fillStyle = '#888';
+    skCtx.textAlign = 'left';
+    skCtx.fillText('I (identity)', cx + 8, cy - 5);
+
+    // Scale factor for points
+    const scale = R * 0.85;
+
+    // Target U
+    const tx = cx + targetRadius * Math.cos(targetAngle) * scale;
+    const ty = cy - targetRadius * Math.sin(targetAngle) * scale;
+
+    skCtx.beginPath();
+    skCtx.arc(tx, ty, 7, 0, 2*Math.PI);
+    skCtx.fillStyle = COLORS.target;
+    skCtx.fill();
+    skCtx.strokeStyle = '#fff';
+    skCtx.lineWidth = 2;
+    skCtx.stroke();
+    skCtx.font = 'bold ' + Math.max(13, w*0.018) + 'px system-ui, sans-serif';
+    skCtx.fillStyle = COLORS.target;
+    skCtx.textAlign = 'left';
+    skCtx.fillText('U (target)', tx + 12, ty - 5);
+
+    const depth = Math.min(currentDepth, levels.length - 1);
+
+    // Draw all previous levels (faded)
+    for (let i = 0; i <= depth; i++) {
+      const lv = levels[i];
+      const lx = cx + lv.x * scale;
+      const ly = cy - lv.y * scale;
+      const alpha = (i < depth) ? 0.25 : 1.0;
+
+      // Error circle (schematic)
+      if (lv.eps * scale > 2) {
+        skCtx.beginPath();
+        skCtx.arc(lx, ly, lv.eps * scale * 0.5, 0, 2*Math.PI);
+        skCtx.strokeStyle = i < depth
+          ? 'rgba(0,143,168,' + (0.15) + ')'
+          : 'rgba(0,124,165,0.3)';
+        skCtx.setLineDash([3,3]);
+        skCtx.lineWidth = 1;
+        skCtx.stroke();
+        skCtx.setLineDash([]);
+      }
+
+      // Residual arrow from U_n to U (the error Delta)
+      if (i <= depth && i > 0) {
+        const prevLv = levels[i-1];
+        const plx = cx + prevLv.x * scale;
+        const ply = cy - prevLv.y * scale;
+
+        // Show residual Delta = U * U_{n-1}^dag
+        skCtx.globalAlpha = (i === depth) ? 0.8 : 0.15;
+        drawArrowXY(skCtx, plx, ply, tx, ty, COLORS.banana, 2, 8, [5,3]);
+
+        if (i === depth) {
+          // V and W decomposition arrows (schematic group commutator)
+          const midX = (plx + tx) / 2;
+          const midY = (ply + ty) / 2;
+          const perpX = -(ty - ply) * 0.35;
+          const perpY = (tx - plx) * 0.35;
+
+          // V arrow
+          drawArrowXY(skCtx, plx, ply, midX + perpX, midY + perpY, COLORS.vColor, 2.5, 8);
+          // W arrow
+          drawArrowXY(skCtx, midX + perpX, midY + perpY, tx, ty, COLORS.wColor, 2.5, 8);
+
+          // Labels
+          skCtx.font = 'bold ' + Math.max(11, w*0.015) + 'px system-ui, sans-serif';
+          skCtx.fillStyle = COLORS.vColor;
+          skCtx.textAlign = 'center';
+          skCtx.fillText('V', midX + perpX * 0.5 - 10, midY + perpY * 0.5 - 8);
+          skCtx.fillStyle = COLORS.wColor;
+          skCtx.fillText('W', midX + perpX * 0.5 + (tx - midX)*0.5 + 10, midY + perpY*0.5 + (ty - midY)*0.5 - 8);
+
+          // Delta label
+          skCtx.fillStyle = '#8a7000';
+          skCtx.font = Math.max(11, w*0.014) + 'px system-ui, sans-serif';
+          const dMidX = (plx + tx) / 2;
+          const dMidY = (ply + ty) / 2;
+          skCtx.fillText('\u0394 = U\u00b7U\u2099\u208B\u2081\u2020', dMidX - 5, dMidY + 18);
+        }
+        skCtx.globalAlpha = 1;
+      }
+
+      // Approximation point U_n
+      skCtx.beginPath();
+      skCtx.arc(lx, ly, i === depth ? 6 : 4, 0, 2*Math.PI);
+      skCtx.fillStyle = i === depth ? COLORS.cgblue : 'rgba(0,143,168,0.35)';
+      skCtx.fill();
+      if (i === depth) {
+        skCtx.strokeStyle = '#fff';
+        skCtx.lineWidth = 2;
+        skCtx.stroke();
+      }
+
+      // Label
+      if (i === depth || (i === depth - 1 && depth > 0)) {
+        skCtx.font = (i === depth ? 'bold ' : '') + Math.max(12, w*0.016) + 'px system-ui, sans-serif';
+        skCtx.fillStyle = i === depth ? COLORS.cgblue : 'rgba(0,143,168,0.5)';
+        skCtx.textAlign = 'right';
+        const labelText = 'U' + String.fromCharCode(8320 + i);
+        skCtx.fillText(labelText, lx - 10, ly + (i === depth ? 5 : 3));
+      }
+    }
+
+    // Connection line from current approx to target (error)
+    if (depth >= 0) {
+      const lv = levels[depth];
+      const lx = cx + lv.x * scale;
+      const ly = cy - lv.y * scale;
+
+      // Draw double-headed distance indicator
+      skCtx.beginPath();
+      skCtx.setLineDash([2,2]);
+      skCtx.moveTo(lx, ly);
+      skCtx.lineTo(tx, ty);
+      skCtx.strokeStyle = 'rgba(231,76,60,0.4)';
+      skCtx.lineWidth = 1;
+      skCtx.stroke();
+      skCtx.setLineDash([]);
+
+      // eps label near midpoint
+      const emx = (lx + tx) / 2;
+      const emy = (ly + ty) / 2;
+      skCtx.font = Math.max(11, w*0.014) + 'px monospace';
+      skCtx.fillStyle = COLORS.target;
+      skCtx.textAlign = 'center';
+      skCtx.fillText('\u03B5' + String.fromCharCode(8320 + depth) + ' = ' + lv.eps.toExponential(2), emx, emy - 10);
+    }
+
+    // VWV†W† annotation
+    skCtx.font = Math.max(12, w*0.016) + 'px system-ui, sans-serif';
+    skCtx.fillStyle = '#666';
+    skCtx.textAlign = 'left';
+    skCtx.fillText('\u0394 \u2248 VWV\u2020W\u2020  (group commutator)', 15, h - 15);
+  }
+
+  function drawLogPlot() {
+    const w = lgC.width;
+    const h = lgC.height;
+    lgCtx.clearRect(0, 0, w, h);
+
+    const pad = { l: 70, r: 25, t: 35, b: 40 };
+    const pw = w - pad.l - pad.r;
+    const ph = h - pad.t - pad.b;
+
+    // Title
+    lgCtx.font = 'bold ' + Math.max(12, w*0.018) + 'px system-ui, sans-serif';
+    lgCtx.fillStyle = COLORS.cgblue;
+    lgCtx.textAlign = 'center';
+    lgCtx.fillText('Approximation Error vs. Recursion Depth (log scale)', w/2, 22);
+
+    // Axes
+    lgCtx.beginPath();
+    lgCtx.moveTo(pad.l, pad.t);
+    lgCtx.lineTo(pad.l, pad.t + ph);
+    lgCtx.lineTo(pad.l + pw, pad.t + ph);
+    lgCtx.strokeStyle = '#999';
+    lgCtx.lineWidth = 1;
+    lgCtx.stroke();
+
+    // Y-axis: log10(eps) - compute range
+    const allEps = [];
+    for (let i = 0; i < levels.length; i++) allEps.push(levels[i].eps);
+    const minLogEps = Math.floor(Math.log10(Math.max(1e-20, allEps[allEps.length-1])));
+    const maxLogEps = Math.ceil(Math.log10(allEps[0])) + 0.5;
+    const logRange = maxLogEps - minLogEps;
+
+    // Y gridlines
+    lgCtx.font = Math.max(10, w*0.013) + 'px monospace';
+    lgCtx.fillStyle = '#666';
+    lgCtx.textAlign = 'right';
+    for (let logV = Math.ceil(minLogEps); logV <= Math.floor(maxLogEps); logV++) {
+      const y = pad.t + ph * (1 - (logV - minLogEps) / logRange);
+      lgCtx.fillText('10^' + logV, pad.l - 5, y + 4);
+      lgCtx.beginPath();
+      lgCtx.moveTo(pad.l, y);
+      lgCtx.lineTo(pad.l + pw, y);
+      lgCtx.strokeStyle = '#eee';
+      lgCtx.lineWidth = 0.5;
+      lgCtx.stroke();
+    }
+
+    // X-axis
+    lgCtx.textAlign = 'center';
+    lgCtx.fillStyle = '#666';
+    for (let n = 0; n <= 5; n++) {
+      const x = pad.l + (n / 5) * pw;
+      lgCtx.fillText(n, x, pad.t + ph + 18);
+      lgCtx.beginPath();
+      lgCtx.moveTo(x, pad.t + ph);
+      lgCtx.lineTo(x, pad.t + ph + 4);
+      lgCtx.strokeStyle = '#999';
+      lgCtx.lineWidth = 1;
+      lgCtx.stroke();
+    }
+    lgCtx.fillText('Recursion depth n', pad.l + pw/2, pad.t + ph + 35);
+
+    // Y axis label
+    lgCtx.save();
+    lgCtx.translate(15, pad.t + ph/2);
+    lgCtx.rotate(-Math.PI/2);
+    lgCtx.textAlign = 'center';
+    lgCtx.fillStyle = '#666';
+    lgCtx.font = Math.max(10, w*0.013) + 'px system-ui, sans-serif';
+    lgCtx.fillText('log\u2081\u2080(\u03B5)', 0, 0);
+    lgCtx.restore();
+
+    // Theoretical curve (all 6 points connected)
+    lgCtx.beginPath();
+    for (let i = 0; i < levels.length; i++) {
+      const x = pad.l + (i / 5) * pw;
+      const logE = Math.log10(Math.max(1e-20, levels[i].eps));
+      const y = pad.t + ph * (1 - (logE - minLogEps) / logRange);
+      if (i === 0) lgCtx.moveTo(x, y);
+      else lgCtx.lineTo(x, y);
+    }
+    lgCtx.strokeStyle = 'rgba(0,124,165,0.2)';
+    lgCtx.lineWidth = 2;
+    lgCtx.setLineDash([5,3]);
+    lgCtx.stroke();
+    lgCtx.setLineDash([]);
+
+    // Actual data points up to current depth
+    const depth = Math.min(currentDepth, levels.length - 1);
+    if (depth >= 0) {
+      lgCtx.beginPath();
+      for (let i = 0; i <= depth; i++) {
+        const x = pad.l + (i / 5) * pw;
+        const logE = Math.log10(Math.max(1e-20, levels[i].eps));
+        const y = pad.t + ph * (1 - (logE - minLogEps) / logRange);
+        if (i === 0) lgCtx.moveTo(x, y);
+        else lgCtx.lineTo(x, y);
+      }
+      lgCtx.strokeStyle = COLORS.cgblue;
+      lgCtx.lineWidth = 2.5;
+      lgCtx.stroke();
+
+      for (let i = 0; i <= depth; i++) {
+        const x = pad.l + (i / 5) * pw;
+        const logE = Math.log10(Math.max(1e-20, levels[i].eps));
+        const y = pad.t + ph * (1 - (logE - minLogEps) / logRange);
+        lgCtx.beginPath();
+        lgCtx.arc(x, y, 5, 0, 2*Math.PI);
+        lgCtx.fillStyle = (i === depth) ? COLORS.banana : COLORS.cgblue;
+        lgCtx.fill();
+        lgCtx.strokeStyle = COLORS.spacecadet;
+        lgCtx.lineWidth = 1.5;
+        lgCtx.stroke();
+
+        // Value label
+        lgCtx.font = Math.max(9, w*0.012) + 'px monospace';
+        lgCtx.fillStyle = COLORS.spacecadet;
+        lgCtx.textAlign = 'left';
+        lgCtx.fillText(levels[i].eps.toExponential(1), x + 8, y - 6);
+      }
+    }
+
+    // Superlinear convergence annotation
+    lgCtx.font = Math.max(10, w*0.014) + 'px system-ui, sans-serif';
+    lgCtx.fillStyle = COLORS.munsell;
+    lgCtx.textAlign = 'right';
+    lgCtx.fillText('Superlinear (\u03B5^{3/2}) convergence', pad.l + pw - 5, pad.t + 15);
+  }
+
+  function updateInfo() {
+    const depth = Math.min(currentDepth, levels.length - 1);
+    const lv = levels[depth];
+    const ln = Math.pow(5, depth) * l0;
+
+    document.getElementById('infoDepth').textContent = depth;
+    document.getElementById('infoEps').textContent = lv.eps.toExponential(3);
+    document.getElementById('infoLen').textContent = ln.toLocaleString();
+    document.getElementById('infoEps0').textContent = eps0.toFixed(3);
+    document.getElementById('infoC').textContent = c_const.toFixed(1);
+    document.getElementById('infoLenFormula').textContent = '5^' + depth + ' \u00d7 ' + l0 + ' = ' + ln.toLocaleString();
+    depthVal.textContent = depth;
+    depthSlider.value = depth;
+  }
+
+  function drawAll() {
+    drawSKSchematic();
+    drawLogPlot();
+    updateInfo();
+  }
+
+  // Step: animate one level deeper
+  window.skStep = function() {
+    if (animating) return;
+    if (currentDepth >= 5) return;
+
+    animating = true;
+    const startDepth = currentDepth;
+    const endDepth = currentDepth + 1;
+    const startTime = performance.now();
+    const duration = 600;
+
+    // Animate the transition
+    const startLv = levels[startDepth];
+    const endLv = levels[endDepth];
+
+    function animate(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      const ease = t < 0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+
+      // Interpolate the current level's position for smooth visual
+      const tempLv = {
+        x: startLv.x + (endLv.x - startLv.x) * ease,
+        y: startLv.y + (endLv.y - startLv.y) * ease,
+        eps: startLv.eps * Math.pow(endLv.eps / startLv.eps, ease),
+        vAngle: endLv.vAngle,
+        wAngle: endLv.wAngle,
+      };
+
+      // Temporarily set levels for drawing
+      const origX = levels[endDepth].x;
+      const origY = levels[endDepth].y;
+      const origEps = levels[endDepth].eps;
+      levels[endDepth].x = tempLv.x;
+      levels[endDepth].y = tempLv.y;
+      levels[endDepth].eps = tempLv.eps;
+
+      currentDepth = endDepth;
+      drawAll();
+
+      levels[endDepth].x = origX;
+      levels[endDepth].y = origY;
+      levels[endDepth].eps = origEps;
+
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        currentDepth = endDepth;
+        drawAll();
+        animating = false;
+
+        if (autoRunning && currentDepth < 5) {
+          setTimeout(() => { if (autoRunning) window.skStep(); }, 300);
+        } else {
+          autoRunning = false;
+        }
+      }
+    }
+    requestAnimationFrame(animate);
+  };
+
+  window.skReset = function() {
+    autoRunning = false;
+    animating = false;
+    currentDepth = 0;
+    drawAll();
+  };
+
+  window.skAutoRun = function() {
+    if (autoRunning) { autoRunning = false; return; }
+    if (currentDepth >= 5) { skReset(); }
+    autoRunning = true;
+    window.skStep();
+  };
+
+  window.skNewTarget = function() {
+    autoRunning = false;
+    animating = false;
+    targetAngle = Math.random() * Math.PI * 1.5 + 0.3;
+    targetRadius = 0.4 + Math.random() * 0.35;
+    eps0 = 0.3 + Math.random() * 0.2;
+    currentDepth = 0;
+    initLevels();
+    drawAll();
+  };
+
+  depthSlider.addEventListener('input', function() {
+    if (animating) return;
+    currentDepth = parseInt(this.value);
+    drawAll();
+  });
+
+  // Init
+  initLevels();
+  resizeAll();
+})();
+</script>
+</body>
+</html>

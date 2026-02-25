@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quantum Algorithms — Introduction to Quantum Computing</title>
+
+<!-- MathJax 3 with QC macros -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    macros: {
+      ket: ['{|#1\\rangle}', 1],
+      bra: ['{\\langle#1|}', 1],
+      braket: ['{\\langle#1|#2\\rangle}', 2],
+      ketbra: ['{|#1\\rangle\\langle#2|}', 2],
+      expect: ['{\\langle #1 \\rangle}', 1],
+      tp: '{\\otimes}',
+      hilb: '{\\mathcal{H}}',
+      I: '{\\mathbb{I}}',
+      C: '{\\mathbb{C}}',
+      R: '{\\mathbb{R}}',
+      Z: '{\\mathbb{Z}}',
+      N: '{\\mathbb{N}}',
+      norm: ['{\\lVert #1 \\rVert}', 1],
+      tr: '{\\operatorname{tr}}',
+      id: '{\\operatorname{id}}',
+      diag: '{\\operatorname{diag}}',
+      poly: '{\\operatorname{poly}}',
+      comm: ['{[#1,\\,#2]}', 2],
+      dd: '{\\mathrm{d}}',
+      bigO: ['{O\\!\\left(#1\\right)}', 1],
+      SU: ['{\\textsl{SU}(#1)}', 1],
+      textbf: ['{\\mathbf{#1}}', 1],
+    },
+    tags: 'ams',
+    tagSide: 'right',
+  },
+  options: {
+    renderActions: {
+      addMenu: [0, '', '']
+    }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<style>
+:root {
+  --spacecadet: #0D284C;
+  --munsell: #008FA8;
+  --banana: #FFD932;
+  --cgblue: #007CA5;
+  --isabelline: #EAEDEA;
+}
+* { box-sizing: border-box; }
+body {
+  max-width: 48em; margin: 2em auto; padding: 0 1.5em;
+  font-family: 'Times New Roman', 'Georgia', serif;
+  font-size: 18px; line-height: 1.6;
+  color: var(--spacecadet); background: #fcfcfc;
+}
+h1, h2, h3, h4 { font-family: system-ui, -apple-system, sans-serif; color: var(--cgblue); }
+h1 { font-size: 1.8em; text-align: center; border-bottom: 2px solid var(--cgblue); padding-bottom: 0.3em; }
+h2 { font-size: 1.35em; margin-top: 2em; }
+h3 { font-size: 1.15em; margin-top: 1.5em; }
+a { color: var(--munsell); }
+nav.top-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.5em 0; border-bottom: 1px solid var(--isabelline);
+  margin-bottom: 1.5em; font-family: system-ui, sans-serif; font-size: 0.85em;
+}
+nav.top-nav a { text-decoration: none; color: var(--cgblue); }
+nav.top-nav a:hover { text-decoration: underline; }
+.fold-controls { text-align: right; margin-bottom: 1em; font-family: system-ui, sans-serif; font-size: 0.8em; }
+.fold-controls button {
+  background: var(--isabelline); border: 1px solid #ccc; border-radius: 4px;
+  padding: 3px 10px; cursor: pointer; font-size: 0.85em; margin-left: 4px;
+}
+.fold-controls button:hover { background: var(--banana); }
+details { margin: 1em 0; border-radius: 6px; padding: 0; overflow: hidden; }
+details > summary {
+  cursor: pointer; padding: 0.5em 0.8em; font-family: system-ui, sans-serif;
+  font-weight: 600; font-size: 0.95em; list-style: none; user-select: none;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: '\25B8 '; display: inline-block; transition: transform 0.15s; }
+details[open] > summary::before { content: '\25BE '; }
+details > :not(summary) { padding: 0 0.8em; }
+.box-intuition { background: rgba(0,143,168,0.06); border-left: 4px solid var(--munsell); }
+.box-intuition > summary { color: var(--munsell); }
+.box-historical { background: var(--isabelline); border-left: 4px solid #888; }
+.box-historical > summary { color: #555; }
+.box-keyresult { background: rgba(255,217,50,0.12); border-left: 4px solid var(--banana); }
+.box-keyresult > summary { color: #8a7000; }
+.box-algorithm { background: rgba(0,124,165,0.05); border-left: 4px solid var(--cgblue); }
+.box-algorithm > summary { color: var(--cgblue); }
+.box-solution { background: #f5f5f5; border-left: 4px solid #aaa; }
+.box-solution > summary { color: #666; }
+.box-exercise { margin: 1em 0; padding: 0.5em 0.8em; background: rgba(0,124,165,0.04); border-left: 4px solid var(--cgblue); border-radius: 6px; }
+.box-exercise strong { color: var(--cgblue); font-family: system-ui, sans-serif; }
+.box-example { margin: 1em 0; padding: 0.5em 0.8em; background: rgba(0,124,165,0.03); border-left: 4px solid var(--cgblue); border-radius: 6px; }
+.box-example strong { color: var(--cgblue); font-family: system-ui, sans-serif; }
+.box-definition { margin: 1em 0; padding: 0.5em 0.8em; background: rgba(0,124,165,0.04); border-left: 4px solid var(--cgblue); border-radius: 6px; }
+.box-definition strong { color: var(--cgblue); font-family: system-ui, sans-serif; }
+.box-theorem { margin: 1em 0; padding: 0.5em 0.8em; background: #f9f9f9; border-left: 4px solid var(--spacecadet); border-radius: 6px; }
+.box-theorem strong { color: var(--spacecadet); font-family: system-ui, sans-serif; }
+.box-remark { margin: 1em 0; padding: 0.5em 0.8em; background: #f9f9f9; border-left: 3px solid #ccc; border-radius: 4px; font-size: 0.95em; }
+.box-notation { margin: 1em 0; padding: 0.5em 0.8em; background: #f9f9f9; border-left: 3px solid var(--cgblue); border-radius: 4px; }
+.tikz-placeholder { margin: 1.5em auto; padding: 2em; background: var(--isabelline); border: 2px dashed #ccc; border-radius: 8px; text-align: center; color: #888; font-family: system-ui, sans-serif; font-style: italic; max-width: 24em; }
+.interactive-figure { margin: 2em 0; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: white; }
+.interactive-figure .fig-header { background: var(--isabelline); padding: 0.5em 1em; font-family: system-ui, sans-serif; font-weight: 600; font-size: 0.9em; color: var(--cgblue); }
+.interactive-figure canvas { display: block; width: 100%; cursor: grab; }
+.interactive-figure .fig-controls { padding: 0.8em 1em; background: #fafafa; border-top: 1px solid #eee; font-family: system-ui, sans-serif; font-size: 0.85em; }
+@media (max-width: 600px) { body { font-size: 16px; padding: 0 0.8em; } h1 { font-size: 1.4em; } }
+.footnotes { font-size: 0.85em; border-top: 1px solid #ddd; margin-top: 3em; padding-top: 1em; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html">&larr; All Lectures</a>
+  <span><strong>Introduction to Quantum Computing</strong></span>
+  <span></span>
+</nav>
+
+<div class="fold-controls">
+  <button onclick="document.querySelectorAll('details').forEach(d=>d.open=true)">Unfold all</button>
+  <button onclick="document.querySelectorAll('details').forEach(d=>d.open=false)">Fold all</button>
+</div>
+
+<h1 id="sec:algorithms">Quantum algorithms</h1>
+<details class="box-historical" open>
+<summary>Historical note</summary>
+<div class="box-body">
+<p>The discovery of efficient quantum algorithms marks one of the great
+intellectual achievements of the late twentieth century. In 1994, Peter
+Shor <span class="citation" data-cites="Shor1994"></span> showed that a
+quantum computer could factor integers in polynomial time, threatening
+the security of RSA encryption. Two years later, Lov Grover <span
+class="citation" data-cites="Grover1996"></span> demonstrated a
+quadratic speedup for unstructured search. In 2009, Harrow, Hassidim,
+and Lloyd <span class="citation" data-cites="HHL2009"></span> showed
+that quantum computers could solve certain linear systems exponentially
+faster than any known classical algorithm. These three results continue
+to form the conceptual foundation for most quantum algorithms discovered
+since.</p>
+</div>
+</details>
+<h2 id="subsec:algo-overview">Overview</h2>
+<p>The two most celebrated quantum algorithms are Shor’s factoring
+algorithm (1994) and Grover’s search algorithm (1996). A third important
+example, possibly more relevant for near-term applications, is the
+Harrow-Hassidim-Lloyd (HHL) linear-systems algorithm (2008). For a
+comprehensive catalogue of quantum algorithms, see the <em>Quantum
+Algorithm Zoo</em><a href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a>.</p>
+<p>Although there are now very many quantum algorithms, they can often
+be traced back fairly directly to one of these three. It is fair to say
+that our understanding of the <em>discovery</em> and <em>design</em> of
+quantum algorithms is still in its infancy. The field of <em>quantum
+software engineering</em>, which would presumably supply robust design
+practices and patterns, has not yet been fully developed.</p>
+<details class="box-intuition" open>
+<summary>Physical intuition</summary>
+<div class="box-body">
+<p>A quantum algorithm provides a <em>quantum advantage</em> (or
+<em>quantum speedup</em>) when it solves a computational problem using
+asymptotically fewer resources (time, queries, or gates) than any known
+classical algorithm for the same problem. Advantages can be:</p>
+<ul>
+<li><p><strong>Exponential</strong>: <span
+class="math inline">$O\!\left(\poly{n}\right)$</span> vs. <span
+class="math inline">2<sup><em>Ω</em>(<em>n</em>)</sup></span> (e.g.,
+Shor’s algorithm for factoring).</p></li>
+<li><p><strong>Polynomial</strong>: <span
+class="math inline">$O\!\left(\sqrt{N}\right)$</span> vs. <span
+class="math inline"><em>O</em> (<em>N</em>)</span> (e.g., Grover’s
+search).</p></li>
+<li><p><strong>Provable</strong>: demonstrated via lower bounds in a
+query or communication model.</p></li>
+<li><p><strong>Heuristic</strong>: observed empirically but without
+rigorous worst-case guarantees (e.g., variational quantum
+algorithms).</p></li>
+</ul>
+<p>Understanding which problems admit quantum speedups, and why, remains
+one of the central open questions in quantum computing.</p>
+</div>
+</details>
+<h2 id="subsec:query-model">The query model</h2>
+<p>To explain the query setting, consider an <span
+class="math inline"><em>N</em></span>-bit input <span
+class="math inline"><em>x</em> = (<em>x</em><sub>0</sub>,…,<em>x</em><sub><em>N</em> − 1</sub>) ∈ {0, 1}<sup>×<em>N</em></sup></span>.
+Usually we take <span
+class="math inline"><em>N</em> = 2<sup><em>n</em></sup></span>, so that
+bit <span class="math inline"><em>x</em><sub><em>j</em></sub></span> can
+be addressed using an <span class="math inline"><em>n</em></span>-bit
+index <span class="math inline"><em>j</em></span>. One can think of the
+input as an <span class="math inline"><em>N</em></span>-bit memory which
+we can access at any point of our choice (a “Random Access Memory”, or
+RAM).</p>
+<p>Memory accesses are modelled via “black-box” unitary operations:</p>
+<div class="box-definition">
+<strong>Definition.</strong>
+<p><span id="def:standard-oracle" label="def:standard-oracle"></span>
+The <em>standard query oracle</em> for an <span
+class="math inline"><em>N</em></span>-bit string <span
+class="math inline"><em>x</em> ∈ {0, 1}<sup>×<em>N</em></sup></span> is
+the unitary on <span class="math inline"><em>n</em> + 1</span> qubits
+defined by <span class="math display">$$\boxed{O_x:|j,b\rangle \mapsto
+|j,b\oplus x_j\rangle,}$$</span> where <span
+class="math inline"><em>j</em> ∈ {0, 1}<sup>×<em>n</em></sup></span>,
+<span class="math inline"><em>b</em> ∈ {0, 1}</span>, and <span
+class="math inline">⊕</span> denotes addition modulo <span
+class="math inline">2</span>. The first <span
+class="math inline"><em>n</em></span> qubits are the <em>address
+register</em> and the <span class="math inline">(<em>n</em>+1)</span>st
+qubit is the <em>target bit</em>.</p>
+</div>
+<p>As a matrix, <span
+class="math inline"><em>O</em><sub><em>x</em></sub></span> is a
+permutation matrix and hence unitary. Because <span
+class="math inline"><em>O</em><sub><em>x</em></sub></span> is a quantum
+operation, a quantum computer can apply it on a <em>superposition</em>
+of addresses <span class="math inline"><em>j</em></span>—something a
+classical computer cannot do.</p>
+<div class="box-definition">
+<strong>Definition.</strong>
+<p><span id="def:phase-oracle" label="def:phase-oracle"></span> Given
+the ability to make a standard query, we can also make a <em>phase
+query</em> by setting the target bit to <span
+class="math inline">$|-angle = \frac{1}{\sqrt{2}}(|0angle - |1angle) =
+H|1angle$</span>: <span
+class="math display"><em>O</em><sub><em>x</em></sub>|<em>j</em>⟩| − <em>a</em><em>n</em><em>g</em><em>l</em><em>e</em> = (−1)<sup><em>x</em><sub><em>j</em></sub></sup>|<em>j</em>⟩| − <em>a</em><em>n</em><em>g</em><em>l</em><em>e</em>.</span>
+The corresponding <span class="math inline"><em>n</em></span>-qubit
+unitary (ignoring the ancilla in the fixed state <span
+class="math inline">| − <em>a</em><em>n</em><em>g</em><em>l</em><em>e</em></span>)
+is <span class="math display">$$\boxed{O_{x,\pm}|j\rangle =
+(-1)^{x_j}|j\rangle.}$$</span></p>
+</div>
+<details class="box-intuition" open>
+<summary>Physical intuition</summary>
+<div class="box-body">
+<p>The technique of placing the answer in the <em>phase</em> rather than
+in a register is called <em>phase kickback</em>. It is a fundamental
+trick in quantum computing: the ancilla qubit <span
+class="math inline">| − <em>a</em><em>n</em><em>g</em><em>l</em><em>e</em></span>
+is an eigenstate of <span class="math inline"><em>X</em></span> with
+eigenvalue <span class="math inline"> − 1</span>, so the oracle’s action
+“kicks back” the function value <span
+class="math inline"><em>x</em><sub><em>j</em></sub></span> as a phase
+<span
+class="math inline">(−1)<sup><em>x</em><sub><em>j</em></sub></sup></span>
+onto the address register. This trick underlies the Deutsch-Jozsa
+algorithm, Grover’s algorithm, and quantum phase estimation.</p>
+</div>
+</details>
+<h2 id="subsec:deutsch-jozsa">The Deutsch-Jozsa algorithm</h2>
+<details class="box-keyresult" open>
+<summary>Key result</summary>
+<div class="box-body">
+<p>For <span
+class="math inline"><em>N</em> = 2<sup><em>n</em></sup></span>, we are
+given <span
+class="math inline"><em>x</em> ∈ {0, 1}<sup>×<em>N</em></sup></span>
+such that either:</p>
+<ol>
+<li><p>all <span
+class="math inline"><em>x</em><sub><em>j</em></sub></span> have the same
+value (“constant”); or</p></li>
+<li><p>half (<span class="math inline"><em>N</em>/2</span>) of the <span
+class="math inline"><em>x</em><sub><em>j</em></sub></span> are <span
+class="math inline">0</span> and the other half are <span
+class="math inline">1</span> (“balanced”).</p></li>
+</ol>
+<p>The objective is to determine which situation holds.</p>
+</div>
+</details>
+<details class="box-algorithm" open>
+<summary>Algorithm</summary>
+<div class="box-body">
+<ol>
+<li><p>Initialise an <span class="math inline"><em>n</em></span>-qubit
+state in <span
+class="math inline">|0<em>a</em><em>n</em><em>g</em><em>l</em><em>e</em><sup>⊗<em>n</em></sup></span>.</p></li>
+<li><p>Apply a Hadamard gate to each qubit: <span
+class="math inline"><em>H</em><sup>⊗<em>n</em></sup></span>.</p></li>
+<li><p>Apply <span
+class="math inline"><em>O</em><sub><em>x</em>, ±</sub></span> to the
+qubits.</p></li>
+<li><p>Apply <span
+class="math inline"><em>H</em><sup>⊗<em>n</em></sup></span>
+again.</p></li>
+<li><p>Measure all qubits in the computational basis.</p></li>
+</ol>
+<p>The complete quantum algorithm is the unitary <span
+class="math display">$$\boxed{U_{\mathrm{DJ}} \equiv H^{\otimes
+n}O_{x,\pm} H^{\otimes n}.}$$</span></p>
+</div>
+</details>
+<p>The circuit for the Deutsch-Jozsa algorithm is:</p>
+<div class="center">
+<p><em>[TikZ diagram — see PDF]</em></p>
+</div>
+<p>We follow the state of the quantum computer through each step.
+Initially the state is <span
+class="math inline">|0<em>a</em><em>n</em><em>g</em><em>l</em><em>e</em><sup>⊗<em>n</em></sup></span>.
+After the first Hadamard transform: <span
+class="math display">$$H^{\otimes n}|0angle^{\otimes n}
+  = \frac{1}{\sqrt{2^n}}\sum_{j\in \{0,1\}^{\times n}}
+|j\rangle.$$</span> After the phase oracle: <span
+class="math display">$$O_{x,\pm} H^{\otimes n}|0angle^{\otimes n}
+  = \frac{1}{\sqrt{2^n}}\sum_{j\in \{0,1\}^{\times n}}
+(-1)^{x_j}|j\rangle.$$</span> After the second Hadamard: <span
+class="math display">$$H^{\otimes n}O_{x,\pm} H^{\otimes
+n}|0angle^{\otimes n}
+  = \frac{1}{2^n}\sum_{j\in \{0,1\}^{\times n}}(-1)^{x_j}
+  \sum_{k\in \{0,1\}^{\times n}} (-1)^{j\cdot k}|k\rangle,$$</span>
+where <span class="math inline">$j\cdot k \equiv \sum_{l=1}^n j_l
+k_l$</span>. Since <span
+class="math inline"><em>j</em> ⋅ <strong>0</strong> = 0</span> for all
+<span class="math inline"><em>j</em></span>, the amplitude of the <span
+class="math inline">|0<em>a</em><em>n</em><em>g</em><em>l</em><em>e</em><sup>⊗<em>n</em></sup></span>
+state in the final superposition is <span
+class="math display">$$\frac{1}{2^n}\sum_{j\in \{0,1\}^{\times
+n}}(-1)^{x_j} = \begin{cases}
+    1  &amp; \text{if $x_j=0$ for all $j$ (constant $0$),} \\
+    -1 &amp; \text{if $x_j=1$ for all $j$ (constant $1$),} \\
+    0  &amp; \text{if $x$ is balanced.}
+  \end{cases}$$</span> Hence the final measurement yields <span
+class="math inline">|0<em>a</em><em>n</em><em>g</em><em>l</em><em>e</em><sup>⊗<em>n</em></sup></span>
+with certainty if <span class="math inline"><em>x</em></span> is
+constant, and yields some other state if <span
+class="math inline"><em>x</em></span> is balanced.</p>
+<details class="box-keyresult" open>
+<summary>Key result</summary>
+<div class="box-body">
+<p>The Deutsch-Jozsa problem can be solved with certainty using only
+<strong>1 quantum query</strong> and <span
+class="math inline"><em>O</em> (<em>n</em>)</span> other operations. Any
+classical deterministic algorithm needs at least <span
+class="math inline"><em>N</em>/2 + 1</span> queries.</p>
+</div>
+</details>
+<div class="box-remark">
+<strong>Remark.</strong>
+<p>The quantum-classical separation for Deutsch-Jozsa only holds for
+<em>deterministic</em> algorithms. A classical <em>randomised</em>
+algorithm can solve this problem efficiently: query <span
+class="math inline"><em>x</em></span> at two random positions; output
+“constant” if those bits are the same and “balanced” if they differ.
+This succeeds with probability at least <span
+class="math inline">1/2</span> when <span
+class="math inline"><em>x</em></span> is balanced.</p>
+</div>
+<h2 id="subsec:grover">Grover’s search algorithm</h2>
+<p>The second most important quantum algorithm after Shor’s is Grover’s
+search algorithm <span class="citation" data-cites="Grover1996"></span>.
+It provides a <em>quadratic</em> speedup—not exponential—but is far more
+widely applicable.</p>
+<h3 id="the-search-problem">The search problem</h3>
+<details class="box-keyresult" open>
+<summary>Key result</summary>
+<div class="box-body">
+<p>For <span
+class="math inline"><em>N</em> = 2<sup><em>n</em></sup></span>, given
+<span
+class="math inline"><em>x</em> ∈ {0, 1}<sup>×<em>N</em></sup></span>,
+find a <span class="math inline"><em>j</em></span> such that <span
+class="math inline"><em>x</em><sub><em>j</em></sub> = 1</span> (or
+output “no solutions” if no such <span
+class="math inline"><em>j</em></span> exists). We denote the number of
+solutions by <span class="math inline"><em>t</em></span> (the Hamming
+weight of <span class="math inline"><em>x</em></span>).</p>
+</div>
+</details>
+<p>This problem models searching an <span
+class="math inline"><em>N</em></span>-slot unordered database.
+Classically, a randomised algorithm needs <span
+class="math inline"><em>Θ</em>(<em>N</em>)</span> queries. Grover’s
+algorithm solves it in <span
+class="math inline">$O\!\left(\sqrt{N}\right)$</span> queries and <span
+class="math inline">$O\!\left(\sqrt{N}\log N\right)$</span> other
+gates.</p>
+<h3 id="the-grover-iterate">The Grover iterate</h3>
+<p>We again exploit the phase oracle <span
+class="math inline"><em>O</em><sub><em>x</em>, ±</sub>|<em>j</em>⟩=(−1)<sup><em>x</em><sub><em>j</em></sub></sup>|<em>j</em>⟩</span>.
+Define the <em>zero-reflection</em>: <span
+class="math display">$$R_0|j\rangle \equiv \begin{cases}
+    |\mathbf{0}\rangle &amp; \text{if } j= \mathbf{0}, \\
+    -|j\rangle         &amp; \text{if } j\not= \mathbf{0}.
+  \end{cases}$$</span> That is, <span
+class="math inline"><em>R</em><sub>0</sub> = 2|<strong>0</strong>⟩⟨<strong>0</strong>| − 𝕀</span>.</p>
+<div class="box-definition">
+<strong>Definition.</strong>
+<p><span id="def:grover-iterate" label="def:grover-iterate"></span> The
+<em>Grover iterate</em> (or <em>Grover diffusion operator</em>) is <span
+class="math display">$$\boxed{\mathcal{G} \equiv H^{\otimes n}R_0
+H^{\otimes n}O_{x,\pm}
+    = \left(2|U\rangle\langle U| - \mathbb{I}\right)O_{x,\pm},}$$</span>
+where <span class="math inline">$|U\rangle = H^{\otimes
+n}|0angle^{\otimes n}
+  = \frac{1}{\sqrt{N}}\sum_j|j\rangle$</span> is the uniform
+superposition. A single Grover iterate uses one query and <span
+class="math inline"><em>O</em> (log<em>N</em>)</span> other gates.</p>
+</div>
+<details class="box-algorithm" open>
+<summary>Algorithm</summary>
+<div class="box-body">
+<ol>
+<li><p>Prepare the uniform superposition <span
+class="math inline">|<em>U</em>⟩=<em>H</em><sup>⊗<em>n</em></sup>|0<em>a</em><em>n</em><em>g</em><em>l</em><em>e</em><sup>⊗<em>n</em></sup></span>.</p></li>
+<li><p>Apply the Grover iterate <span class="math inline">𝒢</span> a
+total of <span class="math inline"><em>k</em></span> times (for some
+<span class="math inline"><em>k</em></span> to be determined).</p></li>
+<li><p>Measure the final state in the computational basis.</p></li>
+<li><p>Verify whether the result <span
+class="math inline"><em>j</em></span> satisfies <span
+class="math inline"><em>x</em><sub><em>j</em></sub> = 1</span>.</p></li>
+</ol>
+</div>
+</details>
+<h3 id="subsubsec:grover-geometry">Geometric analysis</h3>
+<p>There is an elegant geometric argument for the correctness of
+Grover’s algorithm. Define the “good” and “bad” states: <span
+class="math display">$$|G\rangle
+\equiv  \frac{1}{\sqrt{t}}\sum_{\substack{j:\\x_j=1}}|j\rangle,
+  \qquad
+  |B\rangle
+\equiv  \frac{1}{\sqrt{N-t}}\sum_{\substack{j:\\x_j=0}}|j\rangle.$$</span>
+Then the uniform state can be written as <span
+class="math display">$$|U\rangle = \sin(\theta)|G\rangle +
+\cos(\theta)|B\rangle,
+  \qquad \text{where }
+  \theta = \sin^{-1}\!\left(\sqrt{t/N}\right).$$</span></p>
+<details class="box-intuition" open>
+<summary>Physical intuition</summary>
+<div class="box-body">
+<p>The Grover iterate <span class="math inline">𝒢</span> is the product
+of two reflections in the 2-dimensional real plane spanned by <span
+class="math inline">|<em>G</em>⟩</span> and <span
+class="math inline">|<em>B</em>⟩</span>:</p>
+<ol>
+<li><p><span
+class="math inline"><em>O</em><sub><em>x</em>, ±</sub></span> reflects
+through <span class="math inline">|<em>B</em>⟩</span> (i.e., <span
+class="math inline"><em>O</em><sub><em>x</em>, ±</sub> = 𝕀 − 2|<em>G</em>⟩⟨<em>G</em>|</span>
+restricted to this plane).</p></li>
+<li><p><span class="math inline">2|<em>U</em>⟩⟨<em>U</em>| − 𝕀</span>
+reflects through <span class="math inline">|<em>U</em>⟩</span>.</p></li>
+</ol>
+<p>Each application of <span class="math inline">𝒢</span> rotates the
+state by an angle <span class="math inline">2<em>θ</em></span> towards
+<span class="math inline">|<em>G</em>⟩</span>.</p>
+<div class="center">
+<p><em>[TikZ diagram — see PDF]</em></p>
+</div>
+</div>
+</details>
+<p>After <span class="math inline"><em>k</em></span> applications of
+<span class="math inline">𝒢</span>, the state becomes <span
+class="math display">𝒢<sup><em>k</em></sup>|<em>U</em>⟩=sin((2<em>k</em>+1)<em>θ</em>)|<em>G</em>⟩ + cos ((2<em>k</em>+1)<em>θ</em>)|<em>B</em>⟩.</span>
+The probability of observing a solution upon measurement is <span
+class="math display"><em>P</em><sub><em>k</em></sub> = sin<sup>2</sup>((2<em>k</em>+1)<em>θ</em>).</span></p>
+<p>We want <span
+class="math inline"><em>P</em><sub><em>k</em></sub></span> close to
+<span class="math inline">1</span>. Setting <span
+class="math inline">$\widetilde{k} = \frac{\pi}{4\theta} -
+\frac{1}{2}$</span> gives <span
+class="math inline">(2<em>k̃</em>+1)<em>θ</em> = <em>π</em>/2</span> and
+hence <span
+class="math inline"><em>P</em><sub><em>k̃</em></sub> = 1</span>.</p>
+<div class="box-example">
+<strong>Example.</strong>
+<p>If <span class="math inline"><em>t</em> = <em>N</em>/4</span> then
+<span class="math inline"><em>θ</em> = <em>π</em>/6</span> and <span
+class="math inline"><em>k̃</em> = 1</span>. Thus a single Grover
+iteration suffices to find a solution with certainty.</p>
+</div>
+<p>In general <span class="math inline"><em>k̃</em></span> is not an
+integer. Choosing <span class="math inline"><em>k</em></span> to be the
+nearest integer, we bound the failure probability: <span
+class="math display">$$\begin{split}
+    1-P_k &amp;= \cos^2\bigl((2k+1)\theta\bigr)
+    = \sin^2\bigl(2(k-\widetilde{k})\theta\bigr) \\
+    &amp;\le \sin^2(\theta) = \frac{t}{N},
+  \end{split}$$</span> where we used <span
+class="math inline">$|k-\widetilde{k}|\le \frac{1}{2}$</span>. Since
+<span class="math inline">$\sin^{-1}(\sqrt{t/N})\ge \sqrt{t/N}$</span>,
+the number of queries is <span class="math display">$$\boxed{k\le
+\frac{\pi}{4}\sqrt{\frac{N}{t}}.}$$</span></p>
+<h3 id="variants-and-extensions-of-grovers-algorithm">Variants and
+extensions of Grover’s algorithm</h3>
+<ul>
+<li><p><strong>Exact search</strong>: If <span
+class="math inline"><em>t</em></span> is known exactly, the algorithm
+can be tweaked to end up in exactly <span
+class="math inline">|<em>G</em>⟩</span> by adjusting <span
+class="math inline"><em>θ</em></span>.</p></li>
+<li><p><strong>Unknown <span
+class="math inline"><em>t</em></span></strong>: If we do not know <span
+class="math inline"><em>t</em></span>, running the algorithm with
+exponentially increasing guesses for <span
+class="math inline"><em>k</em></span> still gives an expected query
+count of <span class="math inline">$O\!\left(\sqrt{N/t}\right)$</span>.
+If <span class="math inline"><em>t</em> = 0</span>, this is detected by
+verifying <span
+class="math inline"><em>x</em><sub><em>j</em></sub></span> for the
+output <span class="math inline"><em>j</em></span>.</p></li>
+<li><p><strong>Known lower bound</strong>: If <span
+class="math inline"><em>τ</em> ≤ <em>t</em></span> is a known lower
+bound, the algorithm uses an expected <span
+class="math inline">$O\!\left(\sqrt{N/\tau}\right)$</span>
+queries.</p></li>
+<li><p><strong>Boosted error reduction</strong>: To reduce the failure
+probability to <span class="math inline"><em>ϵ</em></span>, one can use
+<span class="math inline">$O\!\left(\sqrt{N
+\log(1/\epsilon)}\right)$</span> queries—note the <span
+class="math inline">log (1/<em>ϵ</em>)</span> is <em>inside</em> the
+square root, which is better than naive repetition giving <span
+class="math inline">$O\!\left(\sqrt{N}\log(1/\epsilon)\right)$</span>.</p></li>
+</ul>
+<div class="box-remark">
+<strong>Remark.</strong>
+<p>Grover’s <span class="math inline">$O\!\left(\sqrt{N}\right)$</span>
+query complexity is <em>optimal</em>: Bennett, Bernstein, Brassard, and
+Vazirani (1997) proved that any quantum algorithm for unstructured
+search requires <span class="math inline">$\Omega(\sqrt{N})$</span>
+queries. This is one of the few known tight quantum lower bounds.</p>
+</div>
+<aside id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p><a href="https://quantumalgorithmzoo.org/"
+class="uri">https://quantumalgorithmzoo.org/</a><a href="#fnref1"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</aside>
+
+<script>
+document.querySelectorAll('details').forEach(d => {
+  d.addEventListener('toggle', () => {
+    if (d.open && window.MathJax) MathJax.typeset([d]);
+  });
+});
+</script>
+
+</body>
+</html>

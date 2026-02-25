@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bloch Sphere — Introduction to Quantum Computing</title>
+
+<!-- MathJax 3 with QC macros -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    macros: {
+      ket: ['{|#1\\rangle}', 1],
+      bra: ['{\\langle#1|}', 1],
+      braket: ['{\\langle#1|#2\\rangle}', 2],
+    },
+    tags: 'ams',
+  },
+  options: {
+    renderActions: { addMenu: [0, '', ''] }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<style>
+:root {
+  --spacecadet: #0D284C;
+  --munsell: #008FA8;
+  --banana: #FFD932;
+  --cgblue: #007CA5;
+  --isabelline: #EAEDEA;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Times New Roman', 'Georgia', serif;
+  font-size: 18px; line-height: 1.6;
+  color: var(--spacecadet); background: #fcfcfc;
+}
+h1, h2, h3, h4 { font-family: system-ui, -apple-system, sans-serif; color: var(--cgblue); }
+a { color: var(--munsell); }
+
+nav.top-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.5em 1.5em; border-bottom: 1px solid var(--isabelline);
+  font-family: system-ui, sans-serif; font-size: 0.85em;
+  background: #fff;
+}
+nav.top-nav a { text-decoration: none; color: var(--cgblue); }
+nav.top-nav a:hover { text-decoration: underline; }
+
+.page-title {
+  text-align: center; padding: 1em 1.5em 0.5em;
+  border-bottom: 2px solid var(--cgblue); margin: 0 1.5em;
+}
+.page-title h1 { font-size: 1.8em; margin-bottom: 0.1em; }
+.page-title p { font-size: 0.95em; color: #555; font-family: system-ui, sans-serif; }
+
+.main-container {
+  display: flex; max-width: 1300px; margin: 1.5em auto; padding: 0 1.5em; gap: 1.5em;
+}
+.viz-panel { flex: 1; min-width: 0; }
+.controls-panel {
+  width: 320px; flex-shrink: 0;
+  background: var(--isabelline); border-radius: 8px; padding: 1.2em;
+  font-family: system-ui, sans-serif; font-size: 0.85em;
+  max-height: calc(100vh - 160px); overflow-y: auto;
+}
+
+canvas#blochCanvas {
+  display: block; width: 100%; border: 1px solid #ddd; border-radius: 8px;
+  background: #fff; cursor: grab;
+}
+canvas#blochCanvas:active { cursor: grabbing; }
+
+.ctrl-section { margin-bottom: 1.2em; }
+.ctrl-section h3 {
+  font-size: 0.95em; margin-bottom: 0.5em; padding-bottom: 0.3em;
+  border-bottom: 1px solid #ccc; color: var(--cgblue);
+}
+.ctrl-row {
+  display: flex; align-items: center; gap: 0.5em; margin-bottom: 0.5em;
+}
+.ctrl-row label { width: 30px; font-weight: 600; color: var(--spacecadet); }
+.ctrl-row input[type="range"] { flex: 1; accent-color: var(--cgblue); }
+.ctrl-row .val { width: 55px; text-align: right; font-family: monospace; font-size: 0.9em; }
+
+.gate-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4em;
+}
+.gate-btn {
+  padding: 0.5em 0; border: 2px solid var(--cgblue); border-radius: 6px;
+  background: #fff; color: var(--cgblue); font-weight: 700; font-size: 1em;
+  cursor: pointer; transition: all 0.15s; font-family: system-ui, sans-serif;
+}
+.gate-btn:hover { background: var(--cgblue); color: #fff; }
+.gate-btn:active { background: var(--spacecadet); border-color: var(--spacecadet); color: #fff; }
+.gate-btn.active { background: var(--banana); border-color: var(--banana); color: var(--spacecadet); }
+
+.state-display {
+  background: #fff; border-radius: 6px; padding: 0.8em;
+  border: 1px solid #ddd; font-size: 0.9em;
+}
+.state-display .label { font-weight: 600; color: var(--cgblue); margin-bottom: 0.3em; }
+.state-display .math-line { margin: 0.3em 0; font-family: 'Times New Roman', serif; font-size: 1.05em; }
+.state-display .coords {
+  font-family: monospace; font-size: 0.85em; color: #555; margin-top: 0.4em;
+}
+
+.preset-btns { display: flex; flex-wrap: wrap; gap: 0.3em; }
+.preset-btn {
+  padding: 0.3em 0.6em; border: 1px solid var(--munsell); border-radius: 4px;
+  background: #fff; color: var(--munsell); font-size: 0.8em; cursor: pointer;
+  font-family: system-ui, sans-serif; transition: all 0.12s;
+}
+.preset-btn:hover { background: var(--munsell); color: #fff; }
+
+@media (max-width: 800px) {
+  .main-container { flex-direction: column; }
+  .controls-panel { width: 100%; max-height: none; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html">&larr; All Lectures</a>
+  <span><strong>Introduction to Quantum Computing</strong></span>
+  <span></span>
+</nav>
+
+<div class="page-title">
+  <h1>Interactive Bloch Sphere</h1>
+  <p>Single-qubit state visualization on the unit sphere</p>
+</div>
+
+<div class="main-container">
+  <div class="viz-panel">
+    <canvas id="blochCanvas" width="700" height="700"></canvas>
+  </div>
+  <div class="controls-panel">
+
+    <div class="ctrl-section">
+      <h3>State Parameters</h3>
+      <div class="ctrl-row">
+        <label>&theta;</label>
+        <input type="range" id="thetaSlider" min="0" max="3141.5926" value="1570.7963" step="1">
+        <span class="val" id="thetaVal">1.571</span>
+      </div>
+      <div class="ctrl-row">
+        <label>&phi;</label>
+        <input type="range" id="phiSlider" min="0" max="6283.1853" value="0" step="1">
+        <span class="val" id="phiVal">0.000</span>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>Apply Gate</h3>
+      <div class="gate-grid">
+        <button class="gate-btn" onclick="applyGate('X')">X</button>
+        <button class="gate-btn" onclick="applyGate('Y')">Y</button>
+        <button class="gate-btn" onclick="applyGate('Z')">Z</button>
+        <button class="gate-btn" onclick="applyGate('H')">H</button>
+        <button class="gate-btn" onclick="applyGate('S')">S</button>
+        <button class="gate-btn" onclick="applyGate('T')">T</button>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>Preset States</h3>
+      <div class="preset-btns">
+        <button class="preset-btn" onclick="setPreset(0,0)">|0&rang;</button>
+        <button class="preset-btn" onclick="setPreset(Math.PI,0)">|1&rang;</button>
+        <button class="preset-btn" onclick="setPreset(Math.PI/2,0)">|+&rang;</button>
+        <button class="preset-btn" onclick="setPreset(Math.PI/2,Math.PI)">|&minus;&rang;</button>
+        <button class="preset-btn" onclick="setPreset(Math.PI/2,Math.PI/2)">|+i&rang;</button>
+        <button class="preset-btn" onclick="setPreset(Math.PI/2,3*Math.PI/2)">|&minus;i&rang;</button>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>Current State</h3>
+      <div class="state-display">
+        <div class="label">State vector</div>
+        <div class="math-line" id="stateKet"></div>
+        <div class="label" style="margin-top:0.6em;">Bloch coordinates</div>
+        <div class="coords" id="blochCoords"></div>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>Instructions</h3>
+      <p style="font-size:0.85em; color:#555;">
+        Drag the sphere to rotate the view. Use &theta; and &phi; sliders to set the qubit state.
+        Click gate buttons to apply unitary gates with smooth animation.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('blochCanvas');
+  const ctx = canvas.getContext('2d');
+  const thetaSlider = document.getElementById('thetaSlider');
+  const phiSlider = document.getElementById('phiSlider');
+  const thetaVal = document.getElementById('thetaVal');
+  const phiVal = document.getElementById('phiVal');
+  const stateKetEl = document.getElementById('stateKet');
+  const blochCoordsEl = document.getElementById('blochCoords');
+
+  // Bloch sphere state (theta, phi)
+  let theta = Math.PI / 2;
+  let phi = 0;
+
+  // View rotation (Euler-like angles for mouse drag)
+  let viewRotX = -0.4;
+  let viewRotY = 0.5;
+  let dragging = false;
+  let lastMX = 0, lastMY = 0;
+
+  // Animation
+  let animating = false;
+  let animStartTheta, animStartPhi, animEndTheta, animEndPhi;
+  let animStartTime, animDuration = 500;
+
+  const COLORS = {
+    spacecadet: '#0D284C',
+    munsell: '#008FA8',
+    banana: '#FFD932',
+    cgblue: '#007CA5',
+    isabelline: '#EAEDEA',
+  };
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.width * dpr; // keep square
+    canvas.style.height = rect.width + 'px';
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // 3D projection
+  function rotateX(p, a) {
+    const c = Math.cos(a), s = Math.sin(a);
+    return [p[0], p[1]*c - p[2]*s, p[1]*s + p[2]*c];
+  }
+  function rotateY(p, a) {
+    const c = Math.cos(a), s = Math.sin(a);
+    return [p[0]*c + p[2]*s, p[1], -p[0]*s + p[2]*c];
+  }
+  function project(p3) {
+    let r = rotateX(p3, viewRotX);
+    r = rotateY(r, viewRotY);
+    const w = canvas.width;
+    const scale = w * 0.32;
+    const perspective = 4.0;
+    const pf = perspective / (perspective + r[2]);
+    return {
+      x: w/2 + r[0] * scale * pf,
+      y: w/2 - r[1] * scale * pf,
+      z: r[2],
+      scale: pf
+    };
+  }
+
+  // Bloch vector from theta, phi
+  function blochVec(th, ph) {
+    return [
+      Math.sin(th) * Math.cos(ph),
+      Math.sin(th) * Math.sin(ph),
+      Math.cos(th)
+    ];
+  }
+
+  function drawCircle3D(cx, cy, cz, nx, ny, nz, radius, segments, color, lineWidth, dashed) {
+    // Draw a circle in 3D given center, normal, and radius
+    // Find two orthogonal vectors in the plane
+    let u, v;
+    if (Math.abs(nx) < 0.9) {
+      u = [0 - nx*0, 1*nz - 0, 0 - 1*ny]; // cross([1,0,0], n) ... let me redo
+    }
+    // cross product of normal with an arbitrary vector
+    let arb = Math.abs(nz) < 0.9 ? [0,0,1] : [1,0,0];
+    u = [
+      ny*arb[2] - nz*arb[1],
+      nz*arb[0] - nx*arb[2],
+      nx*arb[1] - ny*arb[0]
+    ];
+    let ulen = Math.sqrt(u[0]*u[0]+u[1]*u[1]+u[2]*u[2]);
+    u = [u[0]/ulen, u[1]/ulen, u[2]/ulen];
+    v = [
+      ny*u[2] - nz*u[1],
+      nz*u[0] - nx*u[2],
+      nx*u[1] - ny*u[0]
+    ];
+
+    ctx.beginPath();
+    if (dashed) ctx.setLineDash([4,4]);
+    for (let i = 0; i <= segments; i++) {
+      const a = (2 * Math.PI * i) / segments;
+      const px = cx + radius * (Math.cos(a)*u[0] + Math.sin(a)*v[0]);
+      const py = cy + radius * (Math.cos(a)*u[1] + Math.sin(a)*v[1]);
+      const pz = cz + radius * (Math.cos(a)*u[2] + Math.sin(a)*v[2]);
+      const pp = project([px, py, pz]);
+      if (i === 0) ctx.moveTo(pp.x, pp.y);
+      else ctx.lineTo(pp.x, pp.y);
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  function drawArrow(from, to, color, lineWidth, headSize) {
+    const p1 = project(from);
+    const p2 = project(to);
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    if (len < 1) return;
+    const ux = dx/len, uy = dy/len;
+
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+
+    // Arrowhead
+    const hs = headSize || 10;
+    ctx.beginPath();
+    ctx.moveTo(p2.x, p2.y);
+    ctx.lineTo(p2.x - ux*hs + uy*hs*0.4, p2.y - uy*hs - ux*hs*0.4);
+    ctx.lineTo(p2.x - ux*hs - uy*hs*0.4, p2.y - uy*hs + ux*hs*0.4);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
+  function drawLabel(text, pos, color, offsetX, offsetY, fontSize) {
+    const pp = project(pos);
+    ctx.font = (fontSize || 14) + 'px system-ui, sans-serif';
+    ctx.fillStyle = color || COLORS.spacecadet;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, pp.x + (offsetX||0), pp.y + (offsetY||0));
+  }
+
+  function draw() {
+    const w = canvas.width;
+    ctx.clearRect(0, 0, w, w);
+
+    // Great circles
+    drawCircle3D(0,0,0, 0,0,1, 1, 80, '#ccc', 1, false); // equator (xy)
+    drawCircle3D(0,0,0, 0,1,0, 1, 80, '#ddd', 0.7, true); // xz
+    drawCircle3D(0,0,0, 1,0,0, 1, 80, '#ddd', 0.7, true); // yz
+
+    // Axes
+    const axLen = 1.3;
+    const axColor = '#999';
+    drawArrow([-axLen,0,0],[axLen,0,0], axColor, 1, 7);
+    drawArrow([0,-axLen,0],[0,axLen,0], axColor, 1, 7);
+    drawArrow([0,0,-axLen],[0,0,axLen], axColor, 1, 7);
+
+    // Axis labels
+    drawLabel('|+\u27E9', [axLen+0.12, 0, 0], COLORS.cgblue, 0, 0, 15);
+    drawLabel('|\u2212\u27E9', [-axLen-0.12, 0, 0], COLORS.cgblue, 0, 0, 15);
+    drawLabel('|+i\u27E9', [0, axLen+0.12, 0], COLORS.cgblue, 0, 0, 15);
+    drawLabel('|\u2212i\u27E9', [0, -axLen-0.12, 0], COLORS.cgblue, 0, 0, 15);
+    drawLabel('|0\u27E9', [0, 0, axLen+0.12], COLORS.cgblue, 0, -5, 16);
+    drawLabel('|1\u27E9', [0, 0, -axLen-0.12], COLORS.cgblue, 0, 5, 16);
+
+    // Bloch vector
+    const bv = blochVec(theta, phi);
+    drawArrow([0,0,0], bv, COLORS.munsell, 3, 14);
+
+    // Dot at tip
+    const tip = project(bv);
+    ctx.beginPath();
+    ctx.arc(tip.x, tip.y, 6, 0, 2*Math.PI);
+    ctx.fillStyle = COLORS.banana;
+    ctx.fill();
+    ctx.strokeStyle = COLORS.munsell;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Projection shadow on equator
+    const bvProj = [bv[0], bv[1], 0];
+    const projLen = Math.sqrt(bvProj[0]*bvProj[0]+bvProj[1]*bvProj[1]);
+    if (projLen > 0.01) {
+      const pp0 = project([0,0,0]);
+      const ppP = project(bvProj);
+      const ppT = project(bv);
+      ctx.beginPath();
+      ctx.setLineDash([3,3]);
+      ctx.moveTo(ppT.x, ppT.y);
+      ctx.lineTo(ppP.x, ppP.y);
+      ctx.lineTo(pp0.x, pp0.y);
+      ctx.strokeStyle = 'rgba(0,143,168,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Info overlay
+    ctx.font = '13px system-ui, sans-serif';
+    ctx.fillStyle = '#999';
+    ctx.textAlign = 'left';
+    ctx.fillText('Drag to rotate view', 12, w - 10);
+
+    updateStateDisplay();
+  }
+
+  function updateStateDisplay() {
+    const bv = blochVec(theta, phi);
+    const cosHalf = Math.cos(theta/2);
+    const sinHalf = Math.sin(theta/2);
+
+    // Format state ket
+    let alphaStr = cosHalf.toFixed(3);
+    let betaR = sinHalf * Math.cos(phi);
+    let betaI = sinHalf * Math.sin(phi);
+    let betaStr;
+    if (Math.abs(betaI) < 0.0005) {
+      betaStr = betaR.toFixed(3);
+    } else if (Math.abs(betaR) < 0.0005) {
+      betaStr = betaI.toFixed(3) + 'i';
+    } else {
+      betaStr = '(' + betaR.toFixed(3) + (betaI >= 0 ? '+' : '') + betaI.toFixed(3) + 'i)';
+    }
+
+    stateKetEl.innerHTML = '|&psi;&rang; = ' + alphaStr + '|0&rang; + ' + betaStr + '|1&rang;';
+    blochCoordsEl.innerHTML =
+      'r<sub>x</sub> = ' + bv[0].toFixed(4) + '<br>' +
+      'r<sub>y</sub> = ' + bv[1].toFixed(4) + '<br>' +
+      'r<sub>z</sub> = ' + bv[2].toFixed(4) + '<br>' +
+      '&theta; = ' + theta.toFixed(4) + ' (' + (theta*180/Math.PI).toFixed(1) + '&deg;)<br>' +
+      '&phi; = ' + phi.toFixed(4) + ' (' + (phi*180/Math.PI).toFixed(1) + '&deg;)';
+  }
+
+  function updateSliders() {
+    thetaSlider.value = Math.round(theta * 10000);
+    phiSlider.value = Math.round(phi * 10000);
+    thetaVal.textContent = theta.toFixed(3);
+    phiVal.textContent = phi.toFixed(3);
+  }
+
+  thetaSlider.addEventListener('input', function() {
+    if (animating) return;
+    theta = parseFloat(this.value) / 10000;
+    thetaVal.textContent = theta.toFixed(3);
+    draw();
+  });
+  phiSlider.addEventListener('input', function() {
+    if (animating) return;
+    phi = parseFloat(this.value) / 10000;
+    phiVal.textContent = phi.toFixed(3);
+    draw();
+  });
+
+  // Mouse drag for rotation
+  canvas.addEventListener('mousedown', function(e) {
+    dragging = true;
+    lastMX = e.clientX;
+    lastMY = e.clientY;
+  });
+  window.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    const dx = e.clientX - lastMX;
+    const dy = e.clientY - lastMY;
+    viewRotY += dx * 0.008;
+    viewRotX += dy * 0.008;
+    viewRotX = Math.max(-Math.PI/2, Math.min(Math.PI/2, viewRotX));
+    lastMX = e.clientX;
+    lastMY = e.clientY;
+    draw();
+  });
+  window.addEventListener('mouseup', function() { dragging = false; });
+
+  // Touch support
+  canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    dragging = true;
+    lastMX = e.touches[0].clientX;
+    lastMY = e.touches[0].clientY;
+  }, {passive: false});
+  canvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    if (!dragging) return;
+    const dx = e.touches[0].clientX - lastMX;
+    const dy = e.touches[0].clientY - lastMY;
+    viewRotY += dx * 0.008;
+    viewRotX += dy * 0.008;
+    viewRotX = Math.max(-Math.PI/2, Math.min(Math.PI/2, viewRotX));
+    lastMX = e.touches[0].clientX;
+    lastMY = e.touches[0].clientY;
+    draw();
+  }, {passive: false});
+  canvas.addEventListener('touchend', function() { dragging = false; });
+
+  // Gate application
+  // We work with the state vector [alpha, beta] in C^2
+  // alpha = cos(theta/2), beta = e^{i*phi}*sin(theta/2)
+  function stateFromAngles(th, ph) {
+    return [
+      { re: Math.cos(th/2), im: 0 },
+      { re: Math.sin(th/2)*Math.cos(ph), im: Math.sin(th/2)*Math.sin(ph) }
+    ];
+  }
+
+  function anglesToState(th, ph) { return stateFromAngles(th, ph); }
+
+  function stateToAngles(alpha, beta) {
+    // alpha, beta are {re, im}
+    const magAlpha = Math.sqrt(alpha.re*alpha.re + alpha.im*alpha.im);
+    const magBeta = Math.sqrt(beta.re*beta.re + beta.im*beta.im);
+
+    // Make alpha real and positive (global phase)
+    let phaseAlpha = Math.atan2(alpha.im, alpha.re);
+    // Multiply both by e^{-i*phaseAlpha}
+    let aR = alpha.re*Math.cos(phaseAlpha) + alpha.im*Math.sin(phaseAlpha);
+    let aI = -alpha.re*Math.sin(phaseAlpha) + alpha.im*Math.cos(phaseAlpha);
+    let bR = beta.re*Math.cos(phaseAlpha) + beta.im*Math.sin(phaseAlpha);
+    let bI = -beta.re*Math.sin(phaseAlpha) + beta.im*Math.cos(phaseAlpha);
+
+    if (aR < 0) { aR = -aR; bR = -bR; bI = -bI; }
+
+    let newTheta = 2 * Math.acos(Math.min(1, Math.max(0, aR)));
+    let newPhi = Math.atan2(bI, bR);
+    if (newPhi < 0) newPhi += 2 * Math.PI;
+
+    // Clamp
+    newTheta = Math.max(0, Math.min(Math.PI, newTheta));
+    newPhi = newPhi % (2 * Math.PI);
+
+    return { theta: newTheta, phi: newPhi };
+  }
+
+  function cmul(a, b) {
+    return { re: a.re*b.re - a.im*b.im, im: a.re*b.im + a.im*b.re };
+  }
+  function cadd(a, b) { return { re: a.re+b.re, im: a.im+b.im }; }
+
+  function applyMatrix(gate, state) {
+    // gate is [[a,b],[c,d]] in complex
+    const newAlpha = cadd(cmul(gate[0][0], state[0]), cmul(gate[0][1], state[1]));
+    const newBeta = cadd(cmul(gate[1][0], state[0]), cmul(gate[1][1], state[1]));
+    return [newAlpha, newBeta];
+  }
+
+  const C = (r, i) => ({re: r, im: i||0});
+  const sq2 = 1/Math.sqrt(2);
+
+  const gates = {
+    'X': [[C(0), C(1)], [C(1), C(0)]],
+    'Y': [[C(0), C(0,-1)], [C(0,1), C(0)]],
+    'Z': [[C(1), C(0)], [C(0), C(-1)]],
+    'H': [[C(sq2), C(sq2)], [C(sq2), C(-sq2)]],
+    'S': [[C(1), C(0)], [C(0), C(0,1)]],
+    'T': [[C(1), C(0)], [C(0), C(Math.cos(Math.PI/4), Math.sin(Math.PI/4))]],
+  };
+
+  window.applyGate = function(name) {
+    if (animating) return;
+    const state = stateFromAngles(theta, phi);
+    const newState = applyMatrix(gates[name], state);
+    const newAngles = stateToAngles(newState[0], newState[1]);
+
+    animStartTheta = theta;
+    animStartPhi = phi;
+    animEndTheta = newAngles.theta;
+    animEndPhi = newAngles.phi;
+
+    // Handle phi wrapping
+    let dPhi = animEndPhi - animStartPhi;
+    if (dPhi > Math.PI) dPhi -= 2*Math.PI;
+    if (dPhi < -Math.PI) dPhi += 2*Math.PI;
+    animEndPhi = animStartPhi + dPhi;
+
+    animStartTime = performance.now();
+    animating = true;
+
+    function animFrame(now) {
+      const t = Math.min(1, (now - animStartTime) / animDuration);
+      const ease = t < 0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; // easeInOutQuad
+      theta = animStartTheta + (animEndTheta - animStartTheta) * ease;
+      phi = animStartPhi + (animEndPhi - animStartPhi) * ease;
+
+      // Normalize phi
+      while (phi < 0) phi += 2*Math.PI;
+      while (phi >= 2*Math.PI) phi -= 2*Math.PI;
+
+      updateSliders();
+      draw();
+
+      if (t < 1) {
+        requestAnimationFrame(animFrame);
+      } else {
+        theta = animEndTheta;
+        phi = animEndPhi;
+        while (phi < 0) phi += 2*Math.PI;
+        while (phi >= 2*Math.PI) phi -= 2*Math.PI;
+        updateSliders();
+        draw();
+        animating = false;
+      }
+    }
+    requestAnimationFrame(animFrame);
+  };
+
+  window.setPreset = function(th, ph) {
+    if (animating) return;
+    animStartTheta = theta;
+    animStartPhi = phi;
+    animEndTheta = th;
+    animEndPhi = ph;
+
+    let dPhi = animEndPhi - animStartPhi;
+    if (dPhi > Math.PI) dPhi -= 2*Math.PI;
+    if (dPhi < -Math.PI) dPhi += 2*Math.PI;
+    animEndPhi = animStartPhi + dPhi;
+
+    animStartTime = performance.now();
+    animating = true;
+    animDuration = 400;
+
+    function animFrame(now) {
+      const t = Math.min(1, (now - animStartTime) / animDuration);
+      const ease = t < 0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+      theta = animStartTheta + (animEndTheta - animStartTheta) * ease;
+      phi = animStartPhi + (animEndPhi - animStartPhi) * ease;
+      while (phi < 0) phi += 2*Math.PI;
+      while (phi >= 2*Math.PI) phi -= 2*Math.PI;
+      updateSliders();
+      draw();
+      if (t < 1) requestAnimationFrame(animFrame);
+      else {
+        theta = th; phi = ph;
+        updateSliders();
+        draw();
+        animating = false;
+        animDuration = 500;
+      }
+    }
+    requestAnimationFrame(animFrame);
+  };
+
+  // Initial draw
+  updateSliders();
+  draw();
+})();
+</script>
+</body>
+</html>

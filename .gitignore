@@ -1,0 +1,26 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# Compiled PDFs (regenerate with build.sh)
+latex/*.pdf
+latex/solutions/*.pdf
+
+# Video files (too large for git)
+video/*.webm
+video/*.mp4
+
+# Editor artifacts
+.DS_Store
+*~
+*.swp
+
+# Temporary files
+temp/

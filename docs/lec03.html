@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quantum Simulation — Introduction to Quantum Computing</title>
+
+<!-- MathJax 3 with QC macros -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    macros: {
+      ket: ['{|#1\\rangle}', 1],
+      bra: ['{\\langle#1|}', 1],
+      braket: ['{\\langle#1|#2\\rangle}', 2],
+      ketbra: ['{|#1\\rangle\\langle#2|}', 2],
+      expect: ['{\\langle #1 \\rangle}', 1],
+      tp: '{\\otimes}',
+      hilb: '{\\mathcal{H}}',
+      I: '{\\mathbb{I}}',
+      C: '{\\mathbb{C}}',
+      R: '{\\mathbb{R}}',
+      Z: '{\\mathbb{Z}}',
+      N: '{\\mathbb{N}}',
+      norm: ['{\\lVert #1 \\rVert}', 1],
+      tr: '{\\operatorname{tr}}',
+      id: '{\\operatorname{id}}',
+      diag: '{\\operatorname{diag}}',
+      poly: '{\\operatorname{poly}}',
+      comm: ['{[#1,\\,#2]}', 2],
+      dd: '{\\mathrm{d}}',
+      bigO: ['{O\\!\\left(#1\\right)}', 1],
+      SU: ['{\\textsl{SU}(#1)}', 1],
+      textbf: ['{\\mathbf{#1}}', 1],
+    },
+    tags: 'ams',
+    tagSide: 'right',
+  },
+  options: {
+    renderActions: {
+      addMenu: [0, '', '']
+    }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<style>
+:root {
+  --spacecadet: #0D284C;
+  --munsell: #008FA8;
+  --banana: #FFD932;
+  --cgblue: #007CA5;
+  --isabelline: #EAEDEA;
+}
+* { box-sizing: border-box; }
+body {
+  max-width: 48em; margin: 2em auto; padding: 0 1.5em;
+  font-family: 'Times New Roman', 'Georgia', serif;
+  font-size: 18px; line-height: 1.6;
+  color: var(--spacecadet); background: #fcfcfc;
+}
+h1, h2, h3, h4 { font-family: system-ui, -apple-system, sans-serif; color: var(--cgblue); }
+h1 { font-size: 1.8em; text-align: center; border-bottom: 2px solid var(--cgblue); padding-bottom: 0.3em; }
+h2 { font-size: 1.35em; margin-top: 2em; }
+h3 { font-size: 1.15em; margin-top: 1.5em; }
+a { color: var(--munsell); }
+nav.top-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.5em 0; border-bottom: 1px solid var(--isabelline);
+  margin-bottom: 1.5em; font-family: system-ui, sans-serif; font-size: 0.85em;
+}
+nav.top-nav a { text-decoration: none; color: var(--cgblue); }
+nav.top-nav a:hover { text-decoration: underline; }
+.fold-controls { text-align: right; margin-bottom: 1em; font-family: system-ui, sans-serif; font-size: 0.8em; }
+.fold-controls button {
+  background: var(--isabelline); border: 1px solid #ccc; border-radius: 4px;
+  padding: 3px 10px; cursor: pointer; font-size: 0.85em; margin-left: 4px;
+}
+.fold-controls button:hover { background: var(--banana); }
+details { margin: 1em 0; border-radius: 6px; padding: 0; overflow: hidden; }
+details > summary {
+  cursor: pointer; padding: 0.5em 0.8em; font-family: system-ui, sans-serif;
+  font-weight: 600; font-size: 0.95em; list-style: none; user-select: none;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: '\25B8 '; display: inline-block; transition: transform 0.15s; }
+details[open] > summary::before { content: '\25BE '; }
+details > :not(summary) { padding: 0 0.8em; }
+.box-intuition { background: rgba(0,143,168,0.06); border-left: 4px solid var(--munsell); }
+.box-intuition > summary { color: var(--munsell); }
+.box-historical { background: var(--isabelline); border-left: 4px solid #888; }
+.box-historical > summary { color: #555; }
+.box-keyresult { background: rgba(255,217,50,0.12); border-left: 4px solid var(--banana); }
+.box-keyresult > summary { color: #8a7000; }
+.box-algorithm { background: rgba(0,124,165,0.05); border-left: 4px solid var(--cgblue); }
+.box-algorithm > summary { color: var(--cgblue); }
+.box-solution { background: #f5f5f5; border-left: 4px solid #aaa; }
+.box-solution > summary { color: #666; }
+.box-exercise { margin: 1em 0; padding: 0.5em 0.8em; background: rgba(0,124,165,0.04); border-left: 4px solid var(--cgblue); border-radius: 6px; }
+.box-exercise strong { color: var(--cgblue); font-family: system-ui, sans-serif; }
+.box-example { margin: 1em 0; padding: 0.5em 0.8em; background: rgba(0,124,165,0.03); border-left: 4px solid var(--cgblue); border-radius: 6px; }
+.box-example strong { color: var(--cgblue); font-family: system-ui, sans-serif; }
+.box-definition { margin: 1em 0; padding: 0.5em 0.8em; background: rgba(0,124,165,0.04); border-left: 4px solid var(--cgblue); border-radius: 6px; }
+.box-definition strong { color: var(--cgblue); font-family: system-ui, sans-serif; }
+.box-theorem { margin: 1em 0; padding: 0.5em 0.8em; background: #f9f9f9; border-left: 4px solid var(--spacecadet); border-radius: 6px; }
+.box-theorem strong { color: var(--spacecadet); font-family: system-ui, sans-serif; }
+.box-remark { margin: 1em 0; padding: 0.5em 0.8em; background: #f9f9f9; border-left: 3px solid #ccc; border-radius: 4px; font-size: 0.95em; }
+.box-notation { margin: 1em 0; padding: 0.5em 0.8em; background: #f9f9f9; border-left: 3px solid var(--cgblue); border-radius: 4px; }
+.tikz-placeholder { margin: 1.5em auto; padding: 2em; background: var(--isabelline); border: 2px dashed #ccc; border-radius: 8px; text-align: center; color: #888; font-family: system-ui, sans-serif; font-style: italic; max-width: 24em; }
+.interactive-figure { margin: 2em 0; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: white; }
+.interactive-figure .fig-header { background: var(--isabelline); padding: 0.5em 1em; font-family: system-ui, sans-serif; font-weight: 600; font-size: 0.9em; color: var(--cgblue); }
+.interactive-figure canvas { display: block; width: 100%; cursor: grab; }
+.interactive-figure .fig-controls { padding: 0.8em 1em; background: #fafafa; border-top: 1px solid #eee; font-family: system-ui, sans-serif; font-size: 0.85em; }
+@media (max-width: 600px) { body { font-size: 16px; padding: 0 0.8em; } h1 { font-size: 1.4em; } }
+.footnotes { font-size: 0.85em; border-top: 1px solid #ddd; margin-top: 3em; padding-top: 1em; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html">&larr; All Lectures</a>
+  <span><strong>Introduction to Quantum Computing</strong></span>
+  <span></span>
+</nav>
+
+<div class="fold-controls">
+  <button onclick="document.querySelectorAll('details').forEach(d=>d.open=true)">Unfold all</button>
+  <button onclick="document.querySelectorAll('details').forEach(d=>d.open=false)">Fold all</button>
+</div>
+
+<h1 id="sec:simulation">Trotterization and quantum simulation</h1>
+<details class="box-historical" open>
+<summary>Historical note</summary>
+<div class="box-body">
+<p>In 1982, Richard Feynman <span class="citation"
+data-cites="Feynman1982"></span> asked whether quantum systems could be
+efficiently simulated on classical computers, and conjectured that the
+answer was no—but that a <em>quantum</em> computer could do the job.
+Seth Lloyd <span class="citation" data-cites="Lloyd1996"></span> proved
+Feynman right in 1996, showing that local Hamiltonians can be
+efficiently simulated on a quantum computer via the Lie-Trotter product
+formula. Quantum simulation remains one of the most promising near-term
+applications of quantum computers, with potential impact on quantum
+chemistry, materials science, and high-energy physics.</p>
+</div>
+</details>
+<h2 id="subsec:why-simulate">Why simulate quantum systems?</h2>
+<p>Complex quantum systems have numerous industrially significant
+applications, from molecular structure for quantum chemistry through to
+materials design. Despite their importance, progress on understanding
+the physics of such systems faces continuing challenges.</p>
+<p>The direct simulation of quantum systems by classical computers is
+possible in principle but generically <em>inefficient</em>. Consider the
+Schrödinger equation for a many-body quantum system: <span
+class="math display">$$\label{eq:schrodinger}
+  \boxed{i\frac{d}{dt}|\psi\rangle = H |\psi\rangle.}$$</span> If one
+writes this equation in terms of a basis for Hilbert space, one obtains
+a system of coupled linear ODEs. Such systems are straightforward to
+solve numerically. So what is the difficulty?</p>
+<details class="box-intuition" open>
+<summary>Physical intuition</summary>
+<div class="box-body">
+<p>The key challenge is the <em>exponential</em> number of differential
+equations that must be solved. For one qubit, <span
+class="math inline">2</span> equations; for two qubits, <span
+class="math inline">4</span>; and for <span
+class="math inline"><em>n</em></span> qubits, <span
+class="math inline">2<sup><em>n</em></sup></span> equations. For a
+system of just <span class="math inline">300</span> qubits, there are
+more equations than atoms in the observable universe (<span
+class="math inline">2<sup>300</sup> ≈ 10<sup>90</sup></span>). Sometimes
+insightful approximations reduce the effective number of equations
+(e.g., tensor network methods for low-entanglement states), but for many
+physically interesting systems no such shortcuts are known. This is one
+of the strongest motivations for building quantum computers.</p>
+</div>
+</details>
+<h2 id="subsec:many-body">Many-body quantum systems</h2>
+<p>A many-body quantum system is comprised of many quantum degrees of
+freedom. We model our system as a collection of <span
+class="math inline"><em>n</em></span> qubits (assuming distinguishable
+particles for simplicity) with Hilbert space <span
+class="math display">ℋ ≡ (ℂ<sup>2</sup>)<sup>⊗<em>n</em></sup>.</span></p>
+<div class="box-definition">
+<strong>Definition.</strong>
+<p><span id="def:local-hamiltonian"
+label="def:local-hamiltonian"></span> A Hamiltonian <span
+class="math inline"><em>H</em></span> acting on <span
+class="math inline"><em>n</em></span> qubits is called <em><span
+class="math inline"><em>c</em></span>-local</em> if it can be written as
+<span class="math display">$$H = \sum_{j=1}^L h_j,$$</span> where each
+operator <span
+class="math inline"><em>h</em><sub><em>j</em></sub></span> acts
+nontrivially on at most <span class="math inline"><em>c</em></span>
+qubits (for some constant <span class="math inline"><em>c</em></span>
+independent of <span class="math inline"><em>n</em></span>). The number
+<span class="math inline"><em>L</em></span> of terms can be any
+polynomial in <span class="math inline"><em>n</em></span>.</p>
+</div>
+<div class="box-example">
+<strong>Example.</strong>
+<p>The transverse-field Ising model on a chain of <span
+class="math inline"><em>n</em></span> qubits is <span
+class="math display">$$H = \sum_{j=1}^{n-1} \paulix_j\paulix_{j+1}
+    + \lambda \sum_{j=1}^n \pauliz_j,$$</span> where <span
+class="math inline"><em>λ</em> ∈ ℝ</span> is the transverse field
+strength. This is a <span class="math inline">2</span>-local Hamiltonian
+with <span class="math inline"><em>L</em> = 2<em>n</em> − 1</span>
+terms. It models magnetic phase transitions and is one of the simplest
+exactly-solvable interacting quantum systems.</p>
+</div>
+<div class="box-remark">
+<strong>Remark.</strong>
+<p>The restriction to constant locality <span
+class="math inline"><em>c</em></span> implies that <span
+class="math inline"><em>L</em></span> is bounded by a polynomial in
+<span class="math inline"><em>n</em></span>. Indeed, there are at most
+<span class="math inline">$\binom{n}{c} = O\!\left(n^c\right)$</span>
+subsets of size <span class="math inline"><em>c</em></span>, so <span
+class="math inline">$L \le \binom{n}{c}$</span>, which is polynomial for
+fixed <span class="math inline"><em>c</em></span>.</p>
+</div>
+<h2 id="subsec:sim-algorithm">The quantum simulation algorithm</h2>
+<p>The goal of quantum simulation is, for a given time <span
+class="math inline"><em>t</em></span>, to prepare the state <span
+class="math display">|<em>ψ</em>(<em>t</em>)⟩=<em>e</em><sup>−<em>i</em><em>H</em><em>t</em></sup>|<em>ψ</em>(0)⟩,</span>
+corresponding to the solution of the Schrödinger equation <a
+href="#eq:schrodinger" data-reference-type="eqref"
+data-reference="eq:schrodinger">[eq:schrodinger]</a>. The objective is
+to implement the unitary <span
+class="math inline"><em>U</em>(<em>t</em>) ≡ <em>e</em><sup>−<em>i</em><em>H</em><em>t</em></sup></span>
+with quantum gates.</p>
+<p>If we naïvely applied the universality theorem from Section <a
+href="#sec:circuits" data-reference-type="ref"
+data-reference="sec:circuits">[sec:circuits]</a>, we would need roughly
+<span class="math inline">2<sup>2<sup><em>n</em></sup></sup></span>
+elementary gates—and even computing a single matrix element of <span
+class="math inline"><em>U</em>(<em>t</em>)</span> requires solving the
+Schrödinger equation in the first place. We need a fundamentally
+different strategy.</p>
+<details class="box-intuition" open>
+<summary>Physical intuition</summary>
+<div class="box-body">
+<p>Although <span
+class="math inline"><em>e</em><sup>−<em>i</em><em>H</em><em>t</em></sup></span>
+is hard to implement directly, each factor <span
+class="math inline"><em>e</em><sup>−<em>i</em><em>h</em><sub><em>j</em></sub><em>t</em></sup></span>
+acts on a small subsystem (at most <span
+class="math inline"><em>c</em></span> qubits) and is therefore
+straightforward to compile into a quantum circuit using <span
+class="math inline"><em>O</em> (1)</span> gates. The challenge is that
+in general <span
+class="math inline">[<em>h</em><sub><em>j</em></sub>, <em>h</em><sub><em>k</em></sub>] ≠ 0</span>,
+so <span class="math inline">$e^{-iHt} \neq \prod_{j=1}^L e^{-ih_j
+t}$</span>. The Lie-Trotter formula provides a systematic way to
+overcome this obstacle.</p>
+</div>
+</details>
+<div class="box-theorem">
+<strong>Proposition.</strong>
+<p><span id="prop:commuting-case" label="prop:commuting-case"></span> If
+<span
+class="math inline">[<em>h</em><sub><em>j</em></sub>, <em>h</em><sub><em>k</em></sub>] = 0</span>
+for all <span class="math inline"><em>j</em>, <em>k</em></span>, then
+<span class="math display">$$U(t) = e^{-iHt} = \prod_{j=1}^L
+e^{-ih_jt}$$</span> for all <span
+class="math inline"><em>t</em></span>.</p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> When all terms commute, the exponential of a sum
+equals the product of exponentials. This follows from the
+Baker-Campbell-Hausdorff formula, which states <span
+class="math inline">$e^A e^B =
+e^{A+B+\frac{1}{2}[A,\,B]+\cdots}$</span>; all correction terms vanish
+when <span
+class="math inline">[<em>A</em>, <em>B</em>] = 0</span>. ◻</p>
+</div>
+<h3 id="the-lie-trotter-formula">The Lie-Trotter formula</h3>
+<div class="box-theorem">
+<strong>Theorem.</strong>
+<p><span id="thm:lie-trotter" label="thm:lie-trotter"></span> Let <span
+class="math inline"><em>A</em></span> and <span
+class="math inline"><em>B</em></span> be Hermitian operators. Then for
+any real <span class="math inline"><em>t</em></span>, <span
+class="math display">$$\boxed{\lim_{n\rightarrow \infty}
+    \left(e^{iA\frac{t}{n}}e^{iB\frac{t}{n}}\right)^{n}
+    = e^{i(A+B)t}.}$$</span></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> By the Taylor theorem with remainder, <span
+class="math display">$$e^{iA\frac{t}{n}} = \mathbb{I} + \frac{1}{n} iAt
+    + O\!\left(\frac{|t|^2\lVert A \rVert^2}{n^2}\right),$$</span> so
+that <span class="math display">$$e^{iA\frac{t}{n}}e^{iB\frac{t}{n}} =
+\mathbb{I} + \frac{1}{n} i(A+B)t
+    + O\!\left(\frac{|t|^2(\lVert A \rVert+\lVert B
+\rVert)^2}{n^2}\right).$$</span> Taking the <span
+class="math inline"><em>n</em></span>th power, using <span
+class="math inline">$\frac{1}{n^k}\binom{n}{k} =
+\frac{1}{k!}\left(1+O\!\left(\frac{1}{n}\right)\right)$</span>, we
+obtain <span class="math display">$$\lim_{n\rightarrow \infty}
+    \left(e^{iA\frac{t}{n}}e^{iB\frac{t}{n}}\right)^{n}
+    = \sum_{k=0}^\infty \frac{(it)^k}{k!}(A+B)^k = e^{i(A+B)t}.
+    \qedhere$$</span> ◻</p>
+</div>
+<p>By inductively applying the Lie-Trotter formula, one demonstrates
+that for <span class="math inline"><em>n</em></span> large enough, <span
+class="math display">$$U(t) = e^{-it\sum_{j=1}^L h_j}
+  \approx \left(e^{-i h_1\frac{t}{n}}e^{-i h_2\frac{t}{n}}
+  \cdots e^{-i h_L\frac{t}{n}}\right)^{n}.$$</span> Notice that this is
+now a product of <em>local</em> unitary operators, each computable with
+<span class="math inline"><em>O</em> (1)</span> gates.</p>
+<details class="box-keyresult" open>
+<summary>Key result</summary>
+<div class="box-body">
+<p>The first-order Trotter approximation satisfies <span
+class="math display">$$\lVert e^{-iHt} - \left(\prod_{j=1}^L e^{-ih_j
+t/n}\right)^n \rVert
+    \le \frac{t^2}{2n}\sum_{j&lt;k}\lVert [h_j,\,h_k] \rVert.$$</span>
+To achieve accuracy <span class="math inline"><em>ϵ</em></span>, one
+needs <span
+class="math inline"><em>n</em> = <em>O</em> (<em>t</em><sup>2</sup><em>L</em><sup>2</sup>∥<em>h</em>∥<sup>2</sup>/<em>ϵ</em>)</span>
+Trotter steps, giving a total gate count of <span
+class="math inline"><em>O</em> (<em>t</em><sup>2</sup><em>L</em><sup>3</sup>∥<em>h</em>∥<sup>2</sup>/<em>ϵ</em>)</span>.</p>
+</div>
+</details>
+<h3 id="the-quantum-simulation-algorithm">The quantum simulation
+algorithm</h3>
+<details class="box-algorithm" open>
+<summary>Algorithm</summary>
+<div class="box-body">
+<ul>
+<li><p><strong>Input</strong>: (1) A Hamiltonian <span
+class="math inline">$H = \sum_{j=1}^L h_j$</span> acting on <span
+class="math inline"><em>n</em></span> qubits, where each <span
+class="math inline"><em>h</em><sub><em>j</em></sub></span> acts on a
+constant-size subsystem; (2) an initial state <span
+class="math inline">|<em>ψ</em><sub>0</sub>⟩</span>; (3) a target
+accuracy <span class="math inline"><em>δ</em> &gt; 0</span>; and (4) a
+final time <span
+class="math inline"><em>t</em><sub><em>f</em></sub></span>.</p></li>
+<li><p><strong>Output</strong>: A state <span
+class="math inline">|<em>ψ̃</em>(<em>t</em><sub><em>f</em></sub>)⟩</span>
+such that <span
+class="math inline">|⟨<em>ψ̃</em>(<em>t</em><sub><em>f</em></sub>)|<em>e</em><sup>−<em>i</em><em>H</em><em>t</em><sub><em>f</em></sub></sup><em>ψ</em><sub>0</sub>⟩|<sup>2</sup> ≥ 1 − <em>δ</em></span>.</p></li>
+<li><p><strong>Runtime</strong>: <span
+class="math inline">$O\!\left(\poly{1/\delta}\right)$</span>
+operations.</p></li>
+<li><p><strong>Procedure</strong>: Define the Trotter step <span
+class="math inline"><em>U</em><sub><em>Δ</em><em>t</em></sub> ≡ <em>e</em><sup>−<em>i</em><em>h</em><sub>1</sub><em>Δ</em><em>t</em></sup><em>e</em><sup>−<em>i</em><em>h</em><sub>2</sub><em>Δ</em><em>t</em></sup>⋯<em>e</em><sup>−<em>i</em><em>h</em><sub><em>L</em></sub><em>Δ</em><em>t</em></sup></span>
+and choose <span class="math inline"><em>Δ</em><em>t</em></span> for
+acceptable error:</p>
+<ol>
+<li><p>Initialise: <span
+class="math inline">|<em>ψ</em><sub>0</sub>⟩</span>; set <span
+class="math inline"><em>j</em> = 0</span>.</p></li>
+<li><p>Update: <span
+class="math inline">|<em>ψ̃</em><sub><em>j</em> + 1</sub>⟩=<em>U</em><sub><em>Δ</em><em>t</em></sub>|<em>ψ̃</em><sub><em>j</em></sub>⟩</span>.</p></li>
+<li><p>Loop: <span
+class="math inline"><em>j</em> ← <em>j</em> + 1</span>; repeat step 2
+until <span
+class="math inline"><em>j</em> ⋅ <em>Δ</em><em>t</em> ≥ <em>t</em><sub><em>f</em></sub></span>.</p></li>
+<li><p>Output: <span
+class="math inline">|<em>ψ̃</em>(<em>t</em><sub><em>f</em></sub>)⟩=|<em>ψ̃</em><sub><em>j</em></sub>⟩</span>.</p></li>
+</ol></li>
+</ul>
+</div>
+</details>
+<details class="box-intuition" open>
+<summary>Physical intuition</summary>
+<div class="box-body">
+<p>Trotterization is analogous to the operator-splitting methods used in
+classical numerical analysis. By dividing the total evolution time into
+many small steps <span class="math inline"><em>Δ</em><em>t</em></span>,
+the error from non-commutativity is controlled: during each small step,
+the terms “almost commute” because their commutator is multiplied by
+<span class="math inline"><em>Δ</em><em>t</em><sup>2</sup></span>. The
+total circuit looks like:</p>
+<div class="center">
+<p><em>[TikZ diagram — see PDF]</em></p>
+</div>
+</div>
+</details>
+<h2 id="subsec:higher-order">Higher-order product formulas</h2>
+<p>The first-order Trotter formula can be improved. The <em>second-order
+Suzuki-Trotter</em> formula uses <span
+class="math display"><em>S</em><sub>2</sub>(<em>Δ</em><em>t</em>) = <em>e</em><sup>−<em>i</em><em>h</em><sub>1</sub><em>Δ</em><em>t</em>/2</sup><em>e</em><sup>−<em>i</em><em>h</em><sub>2</sub><em>Δ</em><em>t</em>/2</sup>⋯<em>e</em><sup>−<em>i</em><em>h</em><sub><em>L</em></sub><em>Δ</em><em>t</em></sup>⋯<em>e</em><sup>−<em>i</em><em>h</em><sub>2</sub><em>Δ</em><em>t</em>/2</sup><em>e</em><sup>−<em>i</em><em>h</em><sub>1</sub><em>Δ</em><em>t</em>/2</sup>,</span>
+which achieves error <span
+class="math inline"><em>O</em> (<em>Δ</em><em>t</em><sup>3</sup>)</span>
+per step (compared to <span
+class="math inline"><em>O</em> (<em>Δ</em><em>t</em><sup>2</sup>)</span>
+for first order), giving a total error of <span
+class="math inline"><em>O</em> (<em>t</em><sup>3</sup>/<em>n</em><sup>2</sup>)</span>
+after <span class="math inline"><em>n</em></span> steps. Even
+higher-order formulas can be constructed recursively <span
+class="citation" data-cites="ChildsTrotterError2021"></span>.</p>
+<h2 id="subsec:advanced">Advanced techniques and further reading</h2>
+<p>With the deployment of near-term quantum devices, new possibilities
+for quantum simulation have emerged. Beyond Lie-Trotter expansions, the
+major modern approaches include:</p>
+<ul>
+<li><p><strong>Quantum signal processing and quantum singular value
+transform (QSVT)</strong> <span class="citation"
+data-cites="QSVT2019"></span>: A unifying framework that achieves
+near-optimal Hamiltonian simulation and encompasses many quantum
+algorithms as special cases.</p></li>
+<li><p><strong>Qubitization</strong> <span class="citation"
+data-cites="LowChuang2019"></span>: A quantum walk-based method that
+achieves optimal scaling in all parameters simultaneously.</p></li>
+<li><p><strong>Linear combination of unitaries (LCU)</strong> <span
+class="citation" data-cites="ChildsLCU2012"></span>: Expresses <span
+class="math inline"><em>e</em><sup>−<em>i</em><em>H</em><em>t</em></sup></span>
+as a linear combination of easily-implementable unitaries, using an
+ancilla register and amplitude amplification.</p></li>
+<li><p><strong>Randomised methods (qDRIFT)</strong> <span
+class="citation" data-cites="Campbell2019"></span>: Randomly samples
+terms from the Hamiltonian at each step, achieving gate complexity
+independent of the number of terms <span
+class="math inline"><em>L</em></span>.</p></li>
+</ul>
+<div class="box-remark">
+<strong>Remark.</strong>
+<p>The optimal query complexity for Hamiltonian simulation is <span
+class="math inline"><em>Θ</em>(<em>t</em>∥<em>H</em>∥+log(1/<em>ϵ</em>)/loglog(1/<em>ϵ</em>))</span>,
+achieved by QSVT-based methods. The Trotter approach, while not optimal,
+remains practically competitive due to its simplicity and favourable
+constant factors.</p>
+</div>
+
+<script>
+document.querySelectorAll('details').forEach(d => {
+  d.addEventListener('toggle', () => {
+    if (d.open && window.MathJax) MathJax.typeset([d]);
+  });
+});
+</script>
+
+</body>
+</html>

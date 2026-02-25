@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quantum Circuits — Introduction to Quantum Computing</title>
+
+<!-- MathJax 3 with QC macros -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    macros: {
+      ket: ['{|#1\\rangle}', 1],
+      bra: ['{\\langle#1|}', 1],
+      braket: ['{\\langle#1|#2\\rangle}', 2],
+      ketbra: ['{|#1\\rangle\\langle#2|}', 2],
+      expect: ['{\\langle #1 \\rangle}', 1],
+      tp: '{\\otimes}',
+      hilb: '{\\mathcal{H}}',
+      I: '{\\mathbb{I}}',
+      C: '{\\mathbb{C}}',
+      R: '{\\mathbb{R}}',
+      Z: '{\\mathbb{Z}}',
+      N: '{\\mathbb{N}}',
+      norm: ['{\\lVert #1 \\rVert}', 1],
+      tr: '{\\operatorname{tr}}',
+      id: '{\\operatorname{id}}',
+      diag: '{\\operatorname{diag}}',
+      poly: '{\\operatorname{poly}}',
+      comm: ['{[#1,\\,#2]}', 2],
+      dd: '{\\mathrm{d}}',
+      bigO: ['{O\\!\\left(#1\\right)}', 1],
+      SU: ['{\\textsl{SU}(#1)}', 1],
+      textbf: ['{\\mathbf{#1}}', 1],
+    },
+    tags: 'ams',
+    tagSide: 'right',
+  },
+  options: {
+    renderActions: {
+      addMenu: [0, '', '']
+    }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<style>
+:root {
+  --spacecadet: #0D284C;
+  --munsell: #008FA8;
+  --banana: #FFD932;
+  --cgblue: #007CA5;
+  --isabelline: #EAEDEA;
+}
+* { box-sizing: border-box; }
+body {
+  max-width: 48em; margin: 2em auto; padding: 0 1.5em;
+  font-family: 'Times New Roman', 'Georgia', serif;
+  font-size: 18px; line-height: 1.6;
+  color: var(--spacecadet); background: #fcfcfc;
+}
+h1, h2, h3, h4 { font-family: system-ui, -apple-system, sans-serif; color: var(--cgblue); }
+h1 { font-size: 1.8em; text-align: center; border-bottom: 2px solid var(--cgblue); padding-bottom: 0.3em; }
+h2 { font-size: 1.35em; margin-top: 2em; }
+h3 { font-size: 1.15em; margin-top: 1.5em; }
+a { color: var(--munsell); }
+nav.top-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.5em 0; border-bottom: 1px solid var(--isabelline);
+  margin-bottom: 1.5em; font-family: system-ui, sans-serif; font-size: 0.85em;
+}
+nav.top-nav a { text-decoration: none; color: var(--cgblue); }
+nav.top-nav a:hover { text-decoration: underline; }
+.fold-controls { text-align: right; margin-bottom: 1em; font-family: system-ui, sans-serif; font-size: 0.8em; }
+.fold-controls button {
+  background: var(--isabelline); border: 1px solid #ccc; border-radius: 4px;
+  padding: 3px 10px; cursor: pointer; font-size: 0.85em; margin-left: 4px;
+}
+.fold-controls button:hover { background: var(--banana); }
+details { margin: 1em 0; border-radius: 6px; padding: 0; overflow: hidden; }
+details > summary {
+  cursor: pointer; padding: 0.5em 0.8em; font-family: system-ui, sans-serif;
+  font-weight: 600; font-size: 0.95em; list-style: none; user-select: none;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: '\25B8 '; display: inline-block; transition: transform 0.15s; }
+details[open] > summary::before { content: '\25BE '; }
+details > :not(summary) { padding: 0 0.8em; }
+.box-intuition { background: rgba(0,143,168,0.06); border-left: 4px solid var(--munsell); }
+.box-intuition > summary { color: var(--munsell); }
+.box-historical { background: var(--isabelline); border-left: 4px solid #888; }
+.box-historical > summary { color: #555; }
+.box-keyresult { background: rgba(255,217,50,0.12); border-left: 4px solid var(--banana); }
+.box-keyresult > summary { color: #8a7000; }
+.box-algorithm { background: rgba(0,124,165,0.05); border-left: 4px solid var(--cgblue); }
+.box-algorithm > summary { color: var(--cgblue); }
+.box-solution { background: #f5f5f5; border-left: 4px solid #aaa; }
+.box-solution > summary { color: #666; }
+.box-exercise { margin: 1em 0; padding: 0.5em 0.8em; background: rgba(0,124,165,0.04); border-left: 4px solid var(--cgblue); border-radius: 6px; }
+.box-exercise strong { color: var(--cgblue); font-family: system-ui, sans-serif; }
+.box-example { margin: 1em 0; padding: 0.5em 0.8em; background: rgba(0,124,165,0.03); border-left: 4px solid var(--cgblue); border-radius: 6px; }
+.box-example strong { color: var(--cgblue); font-family: system-ui, sans-serif; }
+.box-definition { margin: 1em 0; padding: 0.5em 0.8em; background: rgba(0,124,165,0.04); border-left: 4px solid var(--cgblue); border-radius: 6px; }
+.box-definition strong { color: var(--cgblue); font-family: system-ui, sans-serif; }
+.box-theorem { margin: 1em 0; padding: 0.5em 0.8em; background: #f9f9f9; border-left: 4px solid var(--spacecadet); border-radius: 6px; }
+.box-theorem strong { color: var(--spacecadet); font-family: system-ui, sans-serif; }
+.box-remark { margin: 1em 0; padding: 0.5em 0.8em; background: #f9f9f9; border-left: 3px solid #ccc; border-radius: 4px; font-size: 0.95em; }
+.box-notation { margin: 1em 0; padding: 0.5em 0.8em; background: #f9f9f9; border-left: 3px solid var(--cgblue); border-radius: 4px; }
+.tikz-placeholder { margin: 1.5em auto; padding: 2em; background: var(--isabelline); border: 2px dashed #ccc; border-radius: 8px; text-align: center; color: #888; font-family: system-ui, sans-serif; font-style: italic; max-width: 24em; }
+.interactive-figure { margin: 2em 0; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: white; }
+.interactive-figure .fig-header { background: var(--isabelline); padding: 0.5em 1em; font-family: system-ui, sans-serif; font-weight: 600; font-size: 0.9em; color: var(--cgblue); }
+.interactive-figure canvas { display: block; width: 100%; cursor: grab; }
+.interactive-figure .fig-controls { padding: 0.8em 1em; background: #fafafa; border-top: 1px solid #eee; font-family: system-ui, sans-serif; font-size: 0.85em; }
+@media (max-width: 600px) { body { font-size: 16px; padding: 0 0.8em; } h1 { font-size: 1.4em; } }
+.footnotes { font-size: 0.85em; border-top: 1px solid #ddd; margin-top: 3em; padding-top: 1em; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html">&larr; All Lectures</a>
+  <span><strong>Introduction to Quantum Computing</strong></span>
+  <span></span>
+</nav>
+
+<div class="fold-controls">
+  <button onclick="document.querySelectorAll('details').forEach(d=>d.open=true)">Unfold all</button>
+  <button onclick="document.querySelectorAll('details').forEach(d=>d.open=false)">Fold all</button>
+</div>
+
+<h1 id="sec:circuits">Quantum gate operations and the circuit model</h1>
+<details class="box-historical" open>
+<summary>Historical note</summary>
+<div class="box-body">
+<p>The idea that quantum mechanics could be harnessed for computation
+was first proposed by Richard Feynman in 1982 <span class="citation"
+data-cites="Feynman1982"></span>, who observed that simulating quantum
+systems on classical computers appears to require exponential resources.
+David Deutsch formalised the notion of a quantum Turing machine in 1985,
+and the quantum circuit model emerged as the standard framework for
+designing quantum algorithms. Today, the circuit model underpins
+essentially all practical quantum computing architectures, from
+superconducting qubits to trapped ions.</p>
+</div>
+</details>
+<h2 id="subsec:classical">Classical computation</h2>
+<h3 id="boolean-circuits">Boolean circuits</h3>
+<p>We begin with the theoretical model underlying classical
+computation.</p>
+<p>A <em>boolean circuit</em> is made up of <em>wires</em> and
+<em>gates</em> which carry information around and perform simple
+computational tasks, respectively. These are theoretical abstractions
+and may, or may not, be directly identifiable with actual wires and
+gates (made from transistors).</p>
+<div class="center">
+<p><em>[TikZ diagram — see PDF]</em></p>
+</div>
+<p>This example shows a simple circuit which takes as input a single
+bit, <span class="math inline"><em>a</em></span>. This bit is passed
+through a <span class="math inline">NOT</span> gate, which flips the
+bit, taking <span class="math inline">1</span> to <span
+class="math inline">0</span> and <span class="math inline">0</span> to
+<span class="math inline">1</span>. The wires before and after the <span
+class="math inline">NOT</span> gate serve merely to carry the bit to and
+from the gate; they represent movement of the bit through space, or
+perhaps just through time.</p>
+<p>More generally, a <em>circuit</em> may involve many input and output
+bits, many wires, and many logical gates. A <em>logic gate</em> is a
+<em>boolean function</em> <span
+class="math display">$$\boxed{f:\{0,1\}^{\times k} \rightarrow
+\{0,1\}^{\times l}}$$</span> from some fixed number <span
+class="math inline"><em>k</em></span> of input bits to some fixed number
+<span class="math inline"><em>l</em></span> of output bits. For example,
+the <span class="math inline">NOT</span> gate is a gate with one input
+bit and one output bit which computes the function <span
+class="math inline">$f(a) = 1\oplus a \equiv \overline{a}$</span>, where
+<span class="math inline"><em>a</em></span> is a single bit, and <span
+class="math inline">⊕</span> is modulo <span
+class="math inline">2</span> addition. It is also usual to make the
+convention that no loops are allowed in the circuit, to avoid possible
+instabilities. We say such a circuit is <em>acyclic</em> and we adhere
+to the convention that circuits in the circuit model of computation be
+acyclic.</p>
+<p>There are many other elementary logic gates which are useful for
+computation. A partial list includes the <span
+class="math inline">AND</span> gate, the <span
+class="math inline">OR</span> gate, the <span
+class="math inline">XOR</span> gate, the <span
+class="math inline">NAND</span> gate, and the <span
+class="math inline">NOR</span> gate. Each of these gates takes two bits
+as input, and produces a single bit as output:</p>
+<div class="box-definition">
+<strong>Definition.</strong>
+<p><span id="def:logic-gates" label="def:logic-gates"></span> The
+standard two-input, one-output logic gates are defined by their truth
+tables:</p>
+<div class="center">
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><span
+class="math inline"><em>a</em></span></th>
+<th style="text-align: center;"><span
+class="math inline"><em>b</em></span></th>
+<th style="text-align: center;"><span
+class="math inline">AND</span></th>
+<th style="text-align: center;"><span class="math inline">OR</span></th>
+<th style="text-align: center;"><span
+class="math inline">XOR</span></th>
+<th style="text-align: center;"><span
+class="math inline">NAND</span></th>
+<th style="text-align: center;"><span
+class="math inline">NOR</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>There are two important “gates” missing from this table, namely the
+<span class="math inline">$\text{\small \1}$</span> gate and the <span
+class="math inline">$\text{\small \1}$</span> gate: In circuits we often
+allow bits to “divide”, replacing a bit with two copies of itself, an
+operation referred to as <span class="math inline">$\text{\small
+\1}$</span>. We also allow bits to <span
+class="math inline">$\text{\small \1}$</span>, that is, the value of two
+bits are interchanged. A third operation missing, not really a logic
+gate at all, is to allow the preparation of extra <em>ancilla</em> or
+<em>work bits</em>, to allow extra working space during the
+computation.</p>
+<h3 id="universality-of-classical-gates">Universality of classical
+gates</h3>
+<p>Just a few fixed gates can be used to compute any function <span
+class="math inline"><em>f</em> : {0, 1}<sup>×<em>n</em></sup> → {0, 1}<sup>×<em>m</em></sup></span>
+whatsoever. One can prove this for the simplified case of a function
+<span
+class="math inline"><em>f</em> : {0, 1}<sup>×<em>n</em></sup> → {0, 1}</span>
+with <span class="math inline"><em>n</em></span> input bits and a single
+output bit. The general universality proof follows immediately from this
+special case.</p>
+<div class="box-theorem">
+<strong>Theorem.</strong>
+<p><span id="thm:classical-universality"
+label="thm:classical-universality"></span> The gate set <span
+class="math inline">{AND, XOR, NOT}</span>, together with wires, ancilla
+bits, <span class="math inline">$\text{\small \1}$</span>, and <span
+class="math inline">$\text{\small \1}$</span>, is universal for
+classical computation. That is, any boolean function <span
+class="math inline"><em>f</em> : {0, 1}<sup>×<em>n</em></sup> → {0, 1}</span>
+can be computed by a circuit built from these elements.</p>
+</div>
+<details class="box-intuition" open>
+<summary>Physical intuition</summary>
+<div class="box-body">
+<p>The proof proceeds by induction on <span
+class="math inline"><em>n</em></span>. For <span
+class="math inline"><em>n</em> = 1</span> there are only four boolean
+functions <span class="math inline">{0, 1} → {0, 1}</span>, each
+implementable directly. For the inductive step, any <span
+class="math inline">(<em>n</em>+1)</span>-bit function <span
+class="math inline"><em>f</em></span> can be decomposed as <span
+class="math display">$$f(x_0, x_1,\ldots,x_n) =
+    \overline{x_0}\cdot f_0(x_1,\ldots,x_n)
+    \;\oplus\;
+    x_0 \cdot f_1(x_1,\ldots,x_n),$$</span> where <span
+class="math inline"><em>f</em><sub>0</sub></span> and <span
+class="math inline"><em>f</em><sub>1</sub></span> are the restrictions
+to <span class="math inline"><em>x</em><sub>0</sub> = 0</span> and <span
+class="math inline"><em>x</em><sub>0</sub> = 1</span> respectively. By
+induction, both <span class="math inline"><em>f</em><sub>0</sub></span>
+and <span class="math inline"><em>f</em><sub>1</sub></span> have
+circuits, and combining them with a multiplexer built from <span
+class="math inline">AND</span>, <span class="math inline">XOR</span>,
+and <span class="math inline">NOT</span> completes the construction.</p>
+</div>
+</details>
+<div class="box-remark">
+<strong>Remark.</strong>
+<p>The <span class="math inline">NAND</span> gate alone is universal: it
+can simulate <span class="math inline">NOT</span> (by feeding the same
+input to both ports), <span class="math inline">AND</span> (by applying
+<span class="math inline">NOT</span> to the output of <span
+class="math inline">NAND</span>), and <span
+class="math inline">XOR</span> (via a standard construction).</p>
+</div>
+<h2 id="subsec:qcircuit-model">The quantum circuit model</h2>
+<p>For us the term <em>quantum computer</em> is synonymous with the
+<em>quantum circuit model</em> of computation. The key elements of the
+quantum circuit model are:</p>
+<details class="box-keyresult" open>
+<summary>Key result</summary>
+<div class="box-body">
+<ol>
+<li><p><strong>Classical resources</strong>: a quantum computer consists
+of a <em>classical</em> part and a <em>quantum</em> part. In practice,
+certain tasks may be made much easier if parts of the computation can be
+done classically.</p></li>
+<li><p><strong>A suitable state space</strong>: a quantum circuit
+operates on <span class="math inline"><em>n</em></span> qubits. The
+state space is the <span
+class="math inline">2<sup><em>n</em></sup></span>-dimensional complex
+Hilbert space <span
+class="math inline">(ℂ<sup>2</sup>)<sup>⊗<em>n</em></sup></span>.
+Product states of the form <span
+class="math inline">|<em>x</em><sub>1</sub>⟩|<em>x</em><sub>2</sub>⟩⋯|<em>x</em><sub><em>n</em></sub>⟩</span>,
+where <span
+class="math inline"><em>x</em><sub><em>j</em></sub> ∈ {0, 1}</span>, are
+known as <em>computational basis states</em>.</p></li>
+<li><p><strong>Ability to prepare states in the computational
+basis</strong>: any computational basis state <span
+class="math inline">|<em>x</em><sub>1</sub>⟩|<em>x</em><sub>2</sub>⟩⋯|<em>x</em><sub><em>n</em></sub>⟩</span>
+can be prepared in at most <span class="math inline"><em>n</em></span>
+steps.</p></li>
+<li><p><strong>Ability to perform quantum gates</strong>: unitary
+operations called <em>quantum gates</em> can be applied to any subset of
+the qubits as desired, and a <em>universal family</em> of gates can be
+implemented.</p></li>
+<li><p><strong>Ability to perform measurements in the computational
+basis</strong>: measurements may be performed in the computational basis
+of one or more of the qubits.</p></li>
+</ol>
+</div>
+</details>
+<h3 id="subsubsec:single-qubit">Single-qubit operations</h3>
+<p>Any <span class="math inline">2 × 2</span> unitary operator is called
+a <em>single-qubit operation</em>. While there is an uncountable
+infinity of such operations, quantum circuits often comprise one of a
+handful of specific gates. The most important single-qubit gates are the
+<em>Pauli gates</em> and the <em>Hadamard gate</em>:</p>
+<div class="box-definition">
+<strong>Definition.</strong>
+<p><span id="def:pauli-hadamard" label="def:pauli-hadamard"></span> The
+Pauli gates are <span class="math display">$$X = \begin{pmatrix} 0 &amp;
+1 \\ 1 &amp; 0 \end{pmatrix},\quad
+    Y = \begin{pmatrix} 0 &amp; -i \\ i &amp; 0 \end{pmatrix},\quad
+    Z = \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix}.$$</span>
+The Hadamard gate is <span class="math display">$$H =
+\frac{1}{\sqrt{2}}\begin{pmatrix} 1 &amp; 1 \\ 1 &amp; -1
+\end{pmatrix}.$$</span> The phase gates <span
+class="math inline"><em>S</em></span> and <span
+class="math inline"><em>T</em></span> are <span class="math display">$$S
+= \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; i \end{pmatrix},\quad
+    T = \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; e^{i\pi/4}
+\end{pmatrix}.$$</span></p>
+</div>
+<p>These gates can be visualised via <em>quantum circuit
+diagrams</em>:</p>
+<div class="center">
+<p><em>[TikZ diagram — see PDF]</em></p>
+</div>
+<details class="box-intuition" open>
+<summary>Physical intuition</summary>
+<div class="box-body">
+<p>Any single-qubit pure state <span
+class="math inline">|<em>ψ</em>⟩=<em>α</em>|0⟩ + <em>β</em>|1⟩</span>
+(with <span
+class="math inline">|<em>α</em>|<sup>2</sup> + |<em>β</em>|<sup>2</sup> = 1</span>)
+can be parameterised as <span
+class="math inline">|<em>ψ</em>⟩=cos(<em>θ</em>/2)|0⟩ + <em>e</em><sup><em>i</em><em>φ</em></sup>sin (<em>θ</em>/2)|1⟩</span>,
+mapping states to points on the unit sphere in <span
+class="math inline">ℝ<sup>3</sup></span>: the <em>Bloch sphere</em>. The
+north pole is <span class="math inline">|0⟩</span>, the south pole is
+<span class="math inline">|1⟩</span>, and the equator contains states
+like <span class="math inline">| + ⟩</span> and <span
+class="math inline">| − ⟩</span>. Single-qubit unitaries correspond to
+rotations of this sphere.</p>
+<div class="center">
+<p><em>[TikZ diagram — see PDF]</em></p>
+</div>
+</div>
+</details>
+<p>It turns out that any <span class="math inline">SU(2)</span> operator
+can be approximated by a product of a finite number of gates from a
+suitable generating set; this is the content of the <em>Solovay-Kitaev
+theorem</em> <span class="citation"
+data-cites="SolovayKitaev2006"></span>.</p>
+<div class="box-theorem">
+<strong>Theorem.</strong>
+<p><span id="thm:SK" label="thm:SK"></span> If a set of single-qubit
+quantum gates generates a dense subset of <span
+class="math inline">SU(2)</span>, then any element of <span
+class="math inline">SU(2)</span> can be approximated to accuracy <span
+class="math inline"><em>ϵ</em></span> using a sequence of <span
+class="math inline"><em>O</em> (log<sup><em>c</em></sup>(1/<em>ϵ</em>))</span>
+gates from the generating set, where <span
+class="math inline"><em>c</em> ≈ 3.97</span>.</p>
+</div>
+<h3 id="subsubsec:controlled">Controlled operations</h3>
+<p>“If <span class="math inline"><em>A</em></span> is true, then do
+<span class="math inline"><em>B</em></span>” is one of the most useful
+operations in computing, both classical and quantum.</p>
+<p>The prototypical controlled operation is the controlled-<span
+class="math inline">NOT</span> (<span class="math inline">CNOT</span>).
+This gate has two input qubits: the <em>control qubit</em> and the
+<em>target</em> qubit. Its quantum circuit diagram is</p>
+<div class="center">
+<p><em>[TikZ diagram — see PDF]</em></p>
+</div>
+<p>In the computational basis the action of the <span
+class="math inline">CNOT</span> is given by <span
+class="math inline">|<em>c</em>⟩|<em>t</em>⟩ ↦ |<em>c</em>⟩|<em>t</em> ⊕ <em>c</em>⟩</span>;
+that is, if the control qubit is set to <span
+class="math inline">|1⟩</span> then the target qubit is flipped,
+otherwise the target qubit is left alone. The matrix representation of
+<span class="math inline">CNOT</span> is: <span
+class="math display">$$\text{CNOT} \equiv \begin{pmatrix}
+    1 &amp; 0 &amp; 0 &amp; 0  \\
+    0 &amp; 1 &amp; 0 &amp; 0  \\
+    0 &amp; 0 &amp; 0 &amp; 1  \\
+    0 &amp; 0 &amp; 1 &amp; 0  \\
+  \end{pmatrix}.$$</span></p>
+<details class="box-intuition" open>
+<summary>Physical intuition</summary>
+<div class="box-body">
+<p>When applied to the state <span
+class="math inline">$|+\rangle|0\rangle =
+\frac{1}{\sqrt{2}}(|0\rangle+|1\rangle)|0\rangle$</span>, the <span
+class="math inline">CNOT</span> produces the <em>Bell state</em> <span
+class="math inline">$\frac{1}{\sqrt{2}}(|00\rangle+|11\rangle)$</span>,
+one of the maximally entangled two-qubit states. This illustrates the
+key difference from classical computation: quantum gates can generate
+entanglement, which is the essential resource for quantum speedups.</p>
+</div>
+</details>
+<p>Now that we know how to condition on a single qubit, what about
+conditioning on multiple qubits? An example of multiple-qubit
+conditioning is the <em>Toffoli gate</em>, which flips the third qubit
+conditioned on the first two qubits both being set to one:</p>
+<div class="center">
+<p><em>[TikZ diagram — see PDF]</em></p>
+</div>
+<p>More generally, suppose we have <span
+class="math inline"><em>n</em> + <em>k</em></span> qubits and <span
+class="math inline"><em>U</em></span> is a <span
+class="math inline"><em>k</em></span>-qubit unitary operator. Then we
+define the <em>controlled operation</em> <span
+class="math inline"><em>C</em><sup><em>n</em></sup>(<em>U</em>)</span>
+by <span
+class="math display"><em>C</em><sup><em>n</em></sup>(<em>U</em>)|<em>x</em><sub>1</sub>⟩|<em>x</em><sub>2</sub>⟩⋯|<em>x</em><sub><em>n</em></sub>⟩|<em>ψ</em>⟩ = |<em>x</em><sub>1</sub>⟩|<em>x</em><sub>2</sub>⟩⋯|<em>x</em><sub><em>n</em></sub>⟩ <em>U</em><sup><em>x</em><sub>1</sub> ⋅ <em>x</em><sub>2</sub> ⋅ ⋯ ⋅ <em>x</em><sub><em>n</em></sub></sup>|<em>ψ</em>⟩,</span>
+where the product <span
+class="math inline"><em>x</em><sub>1</sub> ⋅ <em>x</em><sub>2</sub> ⋅ ⋯ ⋅ <em>x</em><sub><em>n</em></sub></span>
+in the exponent of <span class="math inline"><em>U</em></span> means the
+Boolean product. That is, <span class="math inline"><em>U</em></span> is
+applied to the last <span class="math inline"><em>k</em></span> qubits
+if and only if the first <span class="math inline"><em>n</em></span>
+qubits are all equal to <span class="math inline">|1⟩</span>.</p>
+<h3 id="subsubsec:universal">Universal quantum gates</h3>
+<p>A small set of gates (e.g. <span class="math inline">AND</span>,
+<span class="math inline">XOR</span> and <span
+class="math inline">NOT</span>) can compute an arbitrary classical
+function. A similar universality result is true for quantum computation:
+a set of gates is said to be <em>universal for quantum computation</em>
+if any unitary operation may be approximated to arbitrary accuracy by a
+quantum circuit involving only those gates.</p>
+<details class="box-keyresult" open>
+<summary>Key result</summary>
+<div class="box-body">
+<p>Any unitary operation on <span class="math inline"><em>n</em></span>
+qubits can be approximated to arbitrary accuracy using single-qubit
+operations and <span class="math inline">CNOT</span> gates. This is one
+of the most important results in quantum computation, and justifies the
+experimental focus on implementing such gates.</p>
+</div>
+</details>
+<p>The proof proceeds in two steps:</p>
+<h4 id="step-1-two-level-unitary-gates-are-universal.">Step 1: Two-level
+unitary gates are universal.</h4>
+<p>Consider a unitary matrix <span class="math inline"><em>U</em></span>
+acting on a <span class="math inline"><em>d</em></span>-dimensional
+Hilbert space. We show how <span class="math inline"><em>U</em></span>
+may be decomposed into a product of <em>two-level</em> unitary matrices,
+i.e., unitary matrices which act non-trivially on at most two vector
+components.</p>
+<p>The essential idea may be understood by considering <span
+class="math inline"><em>U</em> ∈ SU(3)</span>: <span
+class="math display">$$U = \begin{pmatrix}
+    a &amp; d &amp; g \\
+    b &amp; e &amp; h \\
+    c &amp; f &amp; j
+  \end{pmatrix}.$$</span> One finds two-level unitary matrices <span
+class="math inline"><em>U</em><sub>1</sub></span>, <span
+class="math inline"><em>U</em><sub>2</sub></span>, <span
+class="math inline"><em>U</em><sub>3</sub></span> such that <span
+class="math inline"><em>U</em><sub>3</sub><em>U</em><sub>2</sub><em>U</em><sub>1</sub><em>U</em> = 𝕀</span>,
+whence <span
+class="math inline"><em>U</em> = <em>U</em><sub>1</sub><sup>†</sup><em>U</em><sub>2</sub><sup>†</sup><em>U</em><sub>3</sub><sup>†</sup></span>.
+In general, an element of <span
+class="math inline">SU(<em>d</em>)</span> can be written as a product of
+<span class="math inline"><em>d</em>(<em>d</em>−1)/2</span> two-level
+unitaries.</p>
+<h4
+id="step-2-two-level-unitaries-from-single-qubit-and-textcnot-gates.">Step
+2: Two-level unitaries from single-qubit and <span
+class="math inline">CNOT</span> gates.</h4>
+<p>Any two-level unitary on <span class="math inline"><em>n</em></span>
+qubits can be implemented using single-qubit and <span
+class="math inline">CNOT</span> gates, via <em>Gray codes</em>.</p>
+<div class="box-definition">
+<strong>Definition.</strong>
+<p><span id="def:gray-code" label="def:gray-code"></span> Suppose we
+have distinct binary strings <span
+class="math inline"><strong>s</strong> = <em>s</em><sub>1</sub><em>s</em><sub>2</sub>⋯<em>s</em><sub><em>n</em></sub></span>
+and <span
+class="math inline"><strong>t</strong> = <em>t</em><sub>1</sub><em>t</em><sub>2</sub>⋯<em>t</em><sub><em>n</em></sub></span>.
+A <em>Gray code</em> connecting <span
+class="math inline"><strong>s</strong></span> and <span
+class="math inline"><strong>t</strong></span> is a sequence of binary
+strings, starting with <span
+class="math inline"><strong>s</strong></span> and concluding with <span
+class="math inline"><strong>t</strong></span>, such that adjacent
+members of the list differ in exactly one bit.</p>
+</div>
+<p>For instance, with <span class="math inline"><em>n</em> = 3</span>
+qubits, <span class="math inline"><strong>s</strong> = 111</span> and
+<span class="math inline"><strong>t</strong> = 001</span>, we have the
+Gray code <span class="math inline">111 → 011 → 001</span>.</p>
+<p>Let <span
+class="math inline"><em>g</em><sub>1</sub>, …, <em>g</em><sub><em>m</em></sub></span>
+be the elements of a Gray code connecting <span
+class="math inline"><strong>s</strong></span> and <span
+class="math inline"><strong>t</strong></span>, with <span
+class="math inline"><em>g</em><sub>1</sub> = <strong>s</strong></span>
+and <span
+class="math inline"><em>g</em><sub><em>m</em></sub> = <strong>t</strong></span>.
+Note that <span class="math inline"><em>m</em> ≤ <em>n</em> + 1</span>
+since <span class="math inline"><strong>s</strong></span> and <span
+class="math inline"><strong>t</strong></span> can differ in at most
+<span class="math inline"><em>n</em></span> positions. The quantum
+circuit for the two-level unitary proceeds by:</p>
+<ol>
+<li><p>Performing controlled swaps <span
+class="math inline">|<em>g</em><sub>1</sub>⟩→|<em>g</em><sub>2</sub>⟩ → ⋯ → |<em>g</em><sub><em>m</em> − 1</sub>⟩</span>.</p></li>
+<li><p>Applying a controlled-<span class="math inline"><em>Ũ</em></span>
+operation at the single bit where <span
+class="math inline"><em>g</em><sub><em>m</em> − 1</sub></span> and <span
+class="math inline"><em>g</em><sub><em>m</em></sub></span>
+differ.</p></li>
+<li><p>Undoing the controlled swaps from step 1.</p></li>
+</ol>
+<p>By combining all of these results, an arbitrary unitary on <span
+class="math inline"><em>n</em></span> qubits can be implemented using
+<span
+class="math inline"><em>O</em> (<em>n</em><sup>2</sup>4<sup><em>n</em></sup>)</span>
+single-qubit and <span class="math inline">CNOT</span> gates.</p>
+<div class="box-remark">
+<strong>Remark.</strong>
+<p>The <span
+class="math inline"><em>O</em> (<em>n</em><sup>2</sup>4<sup><em>n</em></sup>)</span>
+gate count is unavoidable in the worst case (since there are roughly
+<span class="math inline">4<sup><em>n</em></sup></span> parameters in an
+<span class="math inline"><em>n</em></span>-qubit unitary), but for
+specific unitaries arising in algorithms, far more efficient
+decompositions exist.</p>
+</div>
+
+<script>
+document.querySelectorAll('details').forEach(d => {
+  d.addEventListener('toggle', () => {
+    if (d.open && window.MathJax) MathJax.typeset([d]);
+  });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grover's Algorithm — Introduction to Quantum Computing</title>
+
+<!-- MathJax 3 with QC macros -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    macros: {
+      ket: ['{|#1\\rangle}', 1],
+      bra: ['{\\langle#1|}', 1],
+    },
+    tags: 'ams',
+  },
+  options: {
+    renderActions: { addMenu: [0, '', ''] }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<style>
+:root {
+  --spacecadet: #0D284C;
+  --munsell: #008FA8;
+  --banana: #FFD932;
+  --cgblue: #007CA5;
+  --isabelline: #EAEDEA;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Times New Roman', 'Georgia', serif;
+  font-size: 18px; line-height: 1.6;
+  color: var(--spacecadet); background: #fcfcfc;
+}
+h1, h2, h3, h4 { font-family: system-ui, -apple-system, sans-serif; color: var(--cgblue); }
+a { color: var(--munsell); }
+
+nav.top-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.5em 1.5em; border-bottom: 1px solid var(--isabelline);
+  font-family: system-ui, sans-serif; font-size: 0.85em; background: #fff;
+}
+nav.top-nav a { text-decoration: none; color: var(--cgblue); }
+nav.top-nav a:hover { text-decoration: underline; }
+
+.page-title {
+  text-align: center; padding: 1em 1.5em 0.5em;
+  border-bottom: 2px solid var(--cgblue); margin: 0 1.5em;
+}
+.page-title h1 { font-size: 1.8em; margin-bottom: 0.1em; }
+.page-title p { font-size: 0.95em; color: #555; font-family: system-ui, sans-serif; }
+
+.main-container {
+  display: flex; max-width: 1300px; margin: 1.5em auto; padding: 0 1.5em; gap: 1.5em;
+}
+.viz-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1em; }
+.controls-panel {
+  width: 340px; flex-shrink: 0;
+  background: var(--isabelline); border-radius: 8px; padding: 1.2em;
+  font-family: system-ui, sans-serif; font-size: 0.85em;
+  max-height: calc(100vh - 160px); overflow-y: auto;
+}
+
+canvas {
+  display: block; width: 100%; border: 1px solid #ddd; border-radius: 8px;
+  background: #fff;
+}
+
+.ctrl-section { margin-bottom: 1.2em; }
+.ctrl-section h3 {
+  font-size: 0.95em; margin-bottom: 0.5em; padding-bottom: 0.3em;
+  border-bottom: 1px solid #ccc; color: var(--cgblue);
+}
+.ctrl-row {
+  display: flex; align-items: center; gap: 0.5em; margin-bottom: 0.5em;
+}
+.ctrl-row label { width: 30px; font-weight: 600; color: var(--spacecadet); }
+.ctrl-row input[type="range"] { flex: 1; accent-color: var(--cgblue); }
+.ctrl-row .val { width: 55px; text-align: right; font-family: monospace; font-size: 0.9em; }
+
+.btn-row { display: flex; gap: 0.4em; margin-bottom: 0.5em; }
+.action-btn {
+  flex: 1; padding: 0.6em 0; border: 2px solid var(--cgblue); border-radius: 6px;
+  background: #fff; color: var(--cgblue); font-weight: 700; font-size: 0.95em;
+  cursor: pointer; transition: all 0.15s; font-family: system-ui, sans-serif;
+}
+.action-btn:hover { background: var(--cgblue); color: #fff; }
+.action-btn:active { background: var(--spacecadet); border-color: var(--spacecadet); color: #fff; }
+.action-btn.reset { border-color: var(--munsell); color: var(--munsell); }
+.action-btn.reset:hover { background: var(--munsell); color: #fff; }
+
+.info-display {
+  background: #fff; border-radius: 6px; padding: 0.8em;
+  border: 1px solid #ddd; font-size: 0.9em;
+}
+.info-display .label { font-weight: 600; color: var(--cgblue); margin-bottom: 0.2em; }
+.info-row { display: flex; justify-content: space-between; padding: 0.15em 0; }
+.info-row .key { color: #555; }
+.info-row .value { font-family: monospace; font-weight: 600; }
+
+.legend { font-size: 0.8em; color: #666; margin-top: 0.3em; }
+.legend-item { display: flex; align-items: center; gap: 0.4em; margin: 0.2em 0; }
+.legend-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+@media (max-width: 800px) {
+  .main-container { flex-direction: column; }
+  .controls-panel { width: 100%; max-height: none; }
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html">&larr; All Lectures</a>
+  <span><strong>Introduction to Quantum Computing</strong></span>
+  <span></span>
+</nav>
+
+<div class="page-title">
+  <h1>Grover's Algorithm Visualizer</h1>
+  <p>Geometric visualization of quantum search in the \(\ket{B}\)-\(\ket{G}\) plane</p>
+</div>
+
+<div class="main-container">
+  <div class="viz-panel">
+    <canvas id="groverCanvas" width="700" height="550"></canvas>
+    <canvas id="probCanvas" width="700" height="200"></canvas>
+  </div>
+  <div class="controls-panel">
+
+    <div class="ctrl-section">
+      <h3>Search Parameters</h3>
+      <div class="ctrl-row">
+        <label>N</label>
+        <select id="nSelect" style="flex:1; padding:0.3em; border:1px solid #ccc; border-radius:4px; font-size:0.95em;">
+          <option value="4">4</option>
+          <option value="8">8</option>
+          <option value="16" selected>16</option>
+          <option value="32">32</option>
+          <option value="64">64</option>
+          <option value="128">128</option>
+          <option value="256">256</option>
+        </select>
+      </div>
+      <div class="ctrl-row">
+        <label>t</label>
+        <input type="range" id="tSlider" min="1" max="8" value="1" step="1">
+        <span class="val" id="tVal">1</span>
+      </div>
+      <p style="font-size:0.8em; color:#666; margin-top:0.2em;">
+        N = database size, t = number of solutions
+      </p>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>Controls</h3>
+      <div class="btn-row">
+        <button class="action-btn" id="stepBtn" onclick="groverStep()">Step</button>
+        <button class="action-btn" id="oracleOnlyBtn" onclick="groverOracleOnly()">Oracle Only</button>
+      </div>
+      <div class="btn-row">
+        <button class="action-btn" id="autoBtn" onclick="groverAuto()">Auto Run</button>
+        <button class="action-btn reset" onclick="groverReset()">Reset</button>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>Current State</h3>
+      <div class="info-display" id="infoDisplay">
+        <div class="info-row"><span class="key">Iteration k</span><span class="value" id="iterVal">0</span></div>
+        <div class="info-row"><span class="key">Angle &alpha;<sub>k</sub></span><span class="value" id="angleVal">--</span></div>
+        <div class="info-row"><span class="key">P(success)</span><span class="value" id="probVal">--</span></div>
+        <div class="info-row"><span class="key">Optimal k&#771;</span><span class="value" id="optVal">--</span></div>
+        <div class="info-row"><span class="key">&theta; = arcsin(&radic;(t/N))</span><span class="value" id="theta0Val">--</span></div>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>Legend</h3>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:#007CA5;"></div> Current state |&psi;<sub>k</sub>&rang;</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#FFD932;"></div> Initial state |U&rang; = |s&rang;</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:rgba(0,143,168,0.3);"></div> Oracle reflection (through |B&rang;)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:rgba(255,100,100,0.4);"></div> Diffusion reflection (through |U&rang;)</div>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>How it works</h3>
+      <p style="font-size:0.82em; color:#555;">
+        The state lives in the 2D plane spanned by
+        \(\ket{B}\) (bad states) and \(\ket{G}\) (good states).
+        Each Grover iteration applies two reflections:
+        the oracle reflects through \(\ket{B}\), then the diffusion
+        operator reflects through \(\ket{U}\). The net effect
+        rotates the state by \(2\theta\) towards \(\ket{G}\).
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  const gCanvas = document.getElementById('groverCanvas');
+  const gCtx = gCanvas.getContext('2d');
+  const pCanvas = document.getElementById('probCanvas');
+  const pCtx = pCanvas.getContext('2d');
+  const nSelect = document.getElementById('nSelect');
+  const tSlider = document.getElementById('tSlider');
+  const tValEl = document.getElementById('tVal');
+
+  const COLORS = {
+    spacecadet: '#0D284C',
+    munsell: '#008FA8',
+    banana: '#FFD932',
+    cgblue: '#007CA5',
+    isabelline: '#EAEDEA',
+  };
+
+  let N = 16, t = 1;
+  let theta0; // arcsin(sqrt(t/N))
+  let currentAngle; // angle from |B> axis
+  let iteration = 0;
+  let probHistory = [];
+  let animating = false;
+  let showOracleIntermediate = false;
+  let intermediateAngle = 0;
+  let autoRunning = false;
+
+  function updateParams() {
+    N = parseInt(nSelect.value);
+    const maxT = Math.floor(N/2);
+    tSlider.max = maxT;
+    if (t > maxT) { t = maxT; tSlider.value = t; }
+    tValEl.textContent = t;
+    theta0 = Math.asin(Math.sqrt(t / N));
+    groverReset();
+  }
+
+  function resize(canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = (canvas === gCanvas ? 550 : 200) * dpr / (700 / rect.width);
+    canvas.style.height = (canvas === gCanvas ? 550 : 200) * (rect.width / 700) + 'px';
+  }
+
+  function resizeAll() { resize(gCanvas); resize(pCanvas); drawAll(); }
+  window.addEventListener('resize', resizeAll);
+
+  nSelect.addEventListener('change', updateParams);
+  tSlider.addEventListener('input', function() {
+    t = parseInt(this.value);
+    tValEl.textContent = t;
+    updateParams();
+  });
+
+  function drawArrow(ctx, x1, y1, x2, y2, color, lineWidth, headSize) {
+    const dx = x2-x1, dy = y2-y1;
+    const len = Math.sqrt(dx*dx+dy*dy);
+    if (len < 1) return;
+    const ux = dx/len, uy = dy/len;
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+
+    const hs = headSize || 10;
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - ux*hs - uy*hs*0.4, y2 - uy*hs + ux*hs*0.4);
+    ctx.lineTo(x2 - ux*hs + uy*hs*0.4, y2 - uy*hs - ux*hs*0.4);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
+  function drawGeometric() {
+    const w = gCanvas.width;
+    const h = gCanvas.height;
+    gCtx.clearRect(0, 0, w, h);
+
+    const cx = w * 0.42;
+    const cy = h * 0.6;
+    const R = Math.min(w, h) * 0.4;
+
+    // Draw quarter circle guide
+    gCtx.beginPath();
+    gCtx.arc(cx, cy, R, -Math.PI/2, 0);
+    gCtx.strokeStyle = '#e0e0e0';
+    gCtx.lineWidth = 1;
+    gCtx.stroke();
+
+    // Axes: |B> horizontal, |G> vertical (up)
+    drawArrow(gCtx, cx - R*0.1, cy, cx + R*1.15, cy, '#bbb', 1.5, 8);
+    drawArrow(gCtx, cx, cy + R*0.1, cx, cy - R*1.15, '#bbb', 1.5, 8);
+
+    // Labels
+    gCtx.font = Math.max(14, w*0.02) + 'px system-ui, sans-serif';
+    gCtx.fillStyle = COLORS.spacecadet;
+    gCtx.textAlign = 'center';
+    gCtx.fillText('|B\u27E9', cx + R*1.15 + 15, cy + 5);
+    gCtx.fillText('|G\u27E9', cx, cy - R*1.15 - 10);
+
+    // Initial state |U> = |s> line (at angle theta0 from |B>)
+    const uX = cx + R * Math.cos(theta0);
+    const uY = cy - R * Math.sin(theta0);
+    gCtx.beginPath();
+    gCtx.setLineDash([6, 4]);
+    gCtx.moveTo(cx, cy);
+    gCtx.lineTo(uX, uY);
+    gCtx.strokeStyle = COLORS.banana;
+    gCtx.lineWidth = 2;
+    gCtx.stroke();
+    gCtx.setLineDash([]);
+
+    // Label |U>
+    gCtx.fillStyle = '#8a7000';
+    gCtx.font = Math.max(13, w*0.018) + 'px system-ui, sans-serif';
+    const uLabelX = cx + (R+25) * Math.cos(theta0);
+    const uLabelY = cy - (R+25) * Math.sin(theta0);
+    gCtx.fillText('|U\u27E9 = |s\u27E9', uLabelX, uLabelY);
+
+    // Show theta0 arc
+    gCtx.beginPath();
+    gCtx.arc(cx, cy, R*0.25, -theta0, 0);
+    gCtx.strokeStyle = '#aaa';
+    gCtx.lineWidth = 1;
+    gCtx.stroke();
+    gCtx.font = Math.max(11, w*0.015) + 'px system-ui, sans-serif';
+    gCtx.fillStyle = '#888';
+    gCtx.fillText('\u03B8', cx + R*0.3, cy - R*0.03);
+
+    // Show oracle intermediate (reflected through |B> axis)
+    if (showOracleIntermediate) {
+      const intX = cx + R * Math.cos(intermediateAngle);
+      const intY = cy - R * Math.sin(intermediateAngle);
+      drawArrow(gCtx, cx, cy, intX, intY, 'rgba(0,143,168,0.5)', 2.5, 10);
+
+      // Dashed arc showing the oracle reflection
+      gCtx.beginPath();
+      gCtx.setLineDash([3,3]);
+      const startA = Math.min(currentAngle, intermediateAngle);
+      const endA = Math.max(currentAngle, intermediateAngle);
+      // The oracle reflects: angle -> -angle (through horizontal)
+      gCtx.arc(cx, cy, R*0.7, -endA, -startA);
+      gCtx.strokeStyle = 'rgba(0,143,168,0.4)';
+      gCtx.lineWidth = 2;
+      gCtx.stroke();
+      gCtx.setLineDash([]);
+
+      // Label
+      gCtx.fillStyle = COLORS.munsell;
+      gCtx.font = Math.max(11, w*0.014) + 'px system-ui, sans-serif';
+      gCtx.fillText('Oracle', intX + 15, intY);
+    }
+
+    // Current state vector
+    const stX = cx + R * Math.cos(currentAngle);
+    const stY = cy - R * Math.sin(currentAngle);
+    drawArrow(gCtx, cx, cy, stX, stY, COLORS.cgblue, 3, 14);
+
+    // Dot at tip
+    gCtx.beginPath();
+    gCtx.arc(stX, stY, 5, 0, 2*Math.PI);
+    gCtx.fillStyle = COLORS.cgblue;
+    gCtx.fill();
+
+    // Current angle arc
+    if (currentAngle > 0.02) {
+      gCtx.beginPath();
+      gCtx.arc(cx, cy, R*0.35, -currentAngle, 0);
+      gCtx.strokeStyle = COLORS.cgblue;
+      gCtx.lineWidth = 2;
+      gCtx.stroke();
+
+      const midA = currentAngle / 2;
+      gCtx.font = 'bold ' + Math.max(13, w*0.018) + 'px system-ui, sans-serif';
+      gCtx.fillStyle = COLORS.cgblue;
+      gCtx.fillText('(2k+1)\u03B8', cx + R*0.42 * Math.cos(midA), cy - R*0.42 * Math.sin(midA));
+    }
+
+    // Previous state traces
+    let prevAngle = theta0;
+    gCtx.globalAlpha = 0.15;
+    for (let i = 0; i < iteration; i++) {
+      const na = (2*(i+1)+1) * theta0;
+      const tipX = cx + R * Math.cos(na);
+      const tipY = cy - R * Math.sin(na);
+      gCtx.beginPath();
+      gCtx.moveTo(cx, cy);
+      gCtx.lineTo(tipX, tipY);
+      gCtx.strokeStyle = COLORS.cgblue;
+      gCtx.lineWidth = 1.5;
+      gCtx.stroke();
+    }
+    gCtx.globalAlpha = 1;
+
+    // Info text on canvas
+    gCtx.font = Math.max(12, w*0.016) + 'px system-ui, sans-serif';
+    gCtx.textAlign = 'left';
+    gCtx.fillStyle = '#666';
+    gCtx.fillText('N = ' + N + ', t = ' + t + ', iteration k = ' + iteration, 15, 25);
+
+    const prob = Math.sin(currentAngle) * Math.sin(currentAngle);
+    gCtx.fillText('P(success) = ' + (prob*100).toFixed(1) + '%', 15, 45);
+  }
+
+  function drawProbPlot() {
+    const w = pCanvas.width;
+    const h = pCanvas.height;
+    pCtx.clearRect(0, 0, w, h);
+
+    const pad = { l: 60, r: 20, t: 30, b: 35 };
+    const pw = w - pad.l - pad.r;
+    const ph = h - pad.t - pad.b;
+
+    // Title
+    pCtx.font = 'bold ' + Math.max(12, w*0.018) + 'px system-ui, sans-serif';
+    pCtx.fillStyle = COLORS.cgblue;
+    pCtx.textAlign = 'center';
+    pCtx.fillText('Success Probability vs. Iteration', w/2, 18);
+
+    // Axes
+    pCtx.beginPath();
+    pCtx.moveTo(pad.l, pad.t);
+    pCtx.lineTo(pad.l, pad.t + ph);
+    pCtx.lineTo(pad.l + pw, pad.t + ph);
+    pCtx.strokeStyle = '#999';
+    pCtx.lineWidth = 1;
+    pCtx.stroke();
+
+    // Y-axis labels
+    pCtx.font = Math.max(10, w*0.014) + 'px monospace';
+    pCtx.fillStyle = '#666';
+    pCtx.textAlign = 'right';
+    for (let v = 0; v <= 1; v += 0.25) {
+      const y = pad.t + ph * (1 - v);
+      pCtx.fillText((v*100).toFixed(0) + '%', pad.l - 5, y + 4);
+      pCtx.beginPath();
+      pCtx.moveTo(pad.l, y);
+      pCtx.lineTo(pad.l + pw, y);
+      pCtx.strokeStyle = '#eee';
+      pCtx.lineWidth = 0.5;
+      pCtx.stroke();
+    }
+
+    // Optimal k line
+    const kOpt = Math.PI / (4 * theta0) - 0.5;
+    const maxK = Math.max(probHistory.length, Math.ceil(kOpt * 1.5), 5);
+
+    // X-axis labels
+    pCtx.textAlign = 'center';
+    pCtx.fillStyle = '#666';
+    const xStep = Math.max(1, Math.floor(maxK / 8));
+    for (let k = 0; k <= maxK; k += xStep) {
+      const x = pad.l + (k / maxK) * pw;
+      pCtx.fillText(k, x, pad.t + ph + 15);
+    }
+    pCtx.fillText('k', pad.l + pw + 10, pad.t + ph + 15);
+
+    // Optimal line
+    if (kOpt > 0 && kOpt <= maxK * 1.2) {
+      const optX = pad.l + (kOpt / maxK) * pw;
+      pCtx.beginPath();
+      pCtx.setLineDash([4,3]);
+      pCtx.moveTo(optX, pad.t);
+      pCtx.lineTo(optX, pad.t + ph);
+      pCtx.strokeStyle = COLORS.banana;
+      pCtx.lineWidth = 2;
+      pCtx.stroke();
+      pCtx.setLineDash([]);
+      pCtx.font = Math.max(10, w*0.013) + 'px system-ui, sans-serif';
+      pCtx.fillStyle = '#8a7000';
+      pCtx.textAlign = 'left';
+      pCtx.fillText('k\u0303 = ' + kOpt.toFixed(1), optX + 4, pad.t + 12);
+    }
+
+    // Theoretical curve (faint)
+    pCtx.beginPath();
+    for (let k = 0; k <= maxK; k += 0.2) {
+      const angle = (2*k+1) * theta0;
+      const p = Math.sin(angle) * Math.sin(angle);
+      const x = pad.l + (k / maxK) * pw;
+      const y = pad.t + ph * (1 - p);
+      if (k === 0) pCtx.moveTo(x, y);
+      else pCtx.lineTo(x, y);
+    }
+    pCtx.strokeStyle = 'rgba(0,124,165,0.2)';
+    pCtx.lineWidth = 2;
+    pCtx.stroke();
+
+    // Actual data points
+    if (probHistory.length > 0) {
+      // Line
+      pCtx.beginPath();
+      for (let i = 0; i < probHistory.length; i++) {
+        const x = pad.l + (i / maxK) * pw;
+        const y = pad.t + ph * (1 - probHistory[i]);
+        if (i === 0) pCtx.moveTo(x, y);
+        else pCtx.lineTo(x, y);
+      }
+      pCtx.strokeStyle = COLORS.cgblue;
+      pCtx.lineWidth = 2.5;
+      pCtx.stroke();
+
+      // Dots
+      for (let i = 0; i < probHistory.length; i++) {
+        const x = pad.l + (i / maxK) * pw;
+        const y = pad.t + ph * (1 - probHistory[i]);
+        pCtx.beginPath();
+        pCtx.arc(x, y, 4, 0, 2*Math.PI);
+        pCtx.fillStyle = (i === probHistory.length-1) ? COLORS.banana : COLORS.cgblue;
+        pCtx.fill();
+        pCtx.strokeStyle = COLORS.spacecadet;
+        pCtx.lineWidth = 1;
+        pCtx.stroke();
+      }
+    }
+  }
+
+  function updateInfo() {
+    const prob = Math.sin(currentAngle) * Math.sin(currentAngle);
+    const kOpt = Math.PI / (4 * theta0) - 0.5;
+
+    document.getElementById('iterVal').textContent = iteration;
+    document.getElementById('angleVal').textContent = currentAngle.toFixed(4) + ' rad';
+    document.getElementById('probVal').textContent = (prob * 100).toFixed(2) + '%';
+    document.getElementById('optVal').textContent = kOpt.toFixed(2);
+    document.getElementById('theta0Val').textContent = theta0.toFixed(4) + ' rad';
+  }
+
+  function drawAll() {
+    drawGeometric();
+    drawProbPlot();
+    updateInfo();
+  }
+
+  // Step animation: oracle then diffusion
+  window.groverStep = function() {
+    if (animating) return;
+    animating = true;
+
+    const startAngle = currentAngle;
+    // Oracle: reflect through |B> (horizontal). angle -> -angle
+    const oracleAngle = -startAngle;
+    // Diffusion: reflect through |U> (theta0 from |B>). The net: startAngle + 2*theta0
+    const finalAngle = startAngle + 2 * theta0;
+
+    const duration1 = 400; // oracle
+    const duration2 = 400; // diffusion
+    const startTime = performance.now();
+
+    showOracleIntermediate = false;
+
+    function animate(now) {
+      const elapsed = now - startTime;
+
+      if (elapsed < duration1) {
+        // Phase 1: oracle reflection
+        const t = elapsed / duration1;
+        const ease = t < 0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+        currentAngle = startAngle + (oracleAngle - startAngle) * ease;
+        showOracleIntermediate = false;
+        drawAll();
+        requestAnimationFrame(animate);
+      } else if (elapsed < duration1 + 100) {
+        // Brief pause showing oracle result
+        currentAngle = oracleAngle;
+        showOracleIntermediate = true;
+        intermediateAngle = oracleAngle;
+        drawAll();
+        requestAnimationFrame(animate);
+      } else if (elapsed < duration1 + 100 + duration2) {
+        // Phase 2: diffusion reflection
+        const t = (elapsed - duration1 - 100) / duration2;
+        const ease = t < 0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+        currentAngle = oracleAngle + (finalAngle - oracleAngle) * ease;
+        showOracleIntermediate = true;
+        intermediateAngle = oracleAngle;
+        drawAll();
+        requestAnimationFrame(animate);
+      } else {
+        // Done
+        currentAngle = finalAngle;
+        iteration++;
+        const prob = Math.sin(currentAngle) * Math.sin(currentAngle);
+        probHistory.push(prob);
+        showOracleIntermediate = false;
+        drawAll();
+        animating = false;
+
+        if (autoRunning) {
+          const kOpt = Math.PI / (4 * theta0) - 0.5;
+          if (iteration < Math.ceil(kOpt) + 2) {
+            setTimeout(() => { if (autoRunning) window.groverStep(); }, 200);
+          } else {
+            autoRunning = false;
+          }
+        }
+      }
+    }
+    requestAnimationFrame(animate);
+  };
+
+  window.groverOracleOnly = function() {
+    if (animating) return;
+    animating = true;
+
+    const startAngle = currentAngle;
+    const oracleAngle = -startAngle;
+    const startTime = performance.now();
+    const duration = 500;
+
+    function animate(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      const ease = t < 0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+      currentAngle = startAngle + (oracleAngle - startAngle) * ease;
+      showOracleIntermediate = false;
+      drawAll();
+      if (t < 1) requestAnimationFrame(animate);
+      else {
+        currentAngle = oracleAngle;
+        showOracleIntermediate = true;
+        intermediateAngle = oracleAngle;
+        drawAll();
+        animating = false;
+      }
+    }
+    requestAnimationFrame(animate);
+  };
+
+  window.groverAuto = function() {
+    if (autoRunning) { autoRunning = false; return; }
+    autoRunning = true;
+    window.groverStep();
+  };
+
+  window.groverReset = function() {
+    autoRunning = false;
+    animating = false;
+    iteration = 0;
+    theta0 = Math.asin(Math.sqrt(t / N));
+    currentAngle = theta0; // initial state |s> is at angle theta0
+    probHistory = [Math.sin(theta0) * Math.sin(theta0)];
+    showOracleIntermediate = false;
+    drawAll();
+  };
+
+  // Init
+  resizeAll();
+  updateParams();
+})();
+</script>
+</body>
+</html>
