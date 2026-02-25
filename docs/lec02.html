@@ -9,8 +9,8 @@
 <script>
 MathJax = {
   tex: {
-    inlineMath: [['\\(','\\)']],
-    displayMath: [['\\[','\\]']],
+    inlineMath: [['\\(','\\)'],['$','$']],
+    displayMath: [['\\[','\\]'],['$$','$$']],
     macros: {
       ket: ['{|#1\\rangle}', 1],
       bra: ['{\\langle#1|}', 1],
@@ -302,7 +302,41 @@ n}O_{x,\pm} H^{\otimes n}.}$$</span></p>
 </details>
 <p>The circuit for the Deutsch-Jozsa algorithm is:</p>
 <div class="center">
-<p><em>[TikZ diagram — see PDF]</em></p>
+<svg width="520" height="140" viewBox="0 0 520 140" style="display:block;margin:0 auto;">
+  <!-- Wire 1 (top qubit) -->
+  <line x1="50" y1="30" x2="480" y2="30" stroke="#0D284C" stroke-width="2"/>
+  <!-- Wire 2 (middle — dots) -->
+  <!-- Wire 3 (bottom qubit) -->
+  <line x1="50" y1="110" x2="480" y2="110" stroke="#0D284C" stroke-width="2"/>
+  <!-- Input labels -->
+  <text x="40" y="35" text-anchor="end" font-family="serif" font-size="14" fill="#0D284C">|0⟩</text>
+  <text x="40" y="75" text-anchor="end" font-family="serif" font-size="16" fill="#0D284C">⋮</text>
+  <text x="40" y="115" text-anchor="end" font-family="serif" font-size="14" fill="#0D284C">|0⟩</text>
+  <!-- First H gates -->
+  <rect x="80" y="8" width="36" height="44" rx="4" fill="#007CA510" stroke="#0D284C" stroke-width="2"/>
+  <text x="98" y="36" text-anchor="middle" font-family="serif" font-style="italic" font-size="16" fill="#0D284C">H</text>
+  <rect x="80" y="88" width="36" height="44" rx="4" fill="#007CA510" stroke="#0D284C" stroke-width="2"/>
+  <text x="98" y="116" text-anchor="middle" font-family="serif" font-style="italic" font-size="16" fill="#0D284C">H</text>
+  <text x="98" y="75" text-anchor="middle" font-family="serif" font-size="16" fill="#0D284C">⋮</text>
+  <!-- Oracle box -->
+  <rect x="160" y="8" width="70" height="124" rx="4" fill="#007CA510" stroke="#0D284C" stroke-width="2"/>
+  <text x="195" y="60" text-anchor="middle" font-family="serif" font-style="italic" font-size="15" fill="#0D284C">O</text>
+  <text x="195" y="80" text-anchor="middle" font-family="serif" font-size="11" fill="#0D284C"><tspan font-style="italic">x</tspan>,±</text>
+  <!-- Second H gates -->
+  <rect x="275" y="8" width="36" height="44" rx="4" fill="#007CA510" stroke="#0D284C" stroke-width="2"/>
+  <text x="293" y="36" text-anchor="middle" font-family="serif" font-style="italic" font-size="16" fill="#0D284C">H</text>
+  <rect x="275" y="88" width="36" height="44" rx="4" fill="#007CA510" stroke="#0D284C" stroke-width="2"/>
+  <text x="293" y="116" text-anchor="middle" font-family="serif" font-style="italic" font-size="16" fill="#0D284C">H</text>
+  <text x="293" y="75" text-anchor="middle" font-family="serif" font-size="16" fill="#0D284C">⋮</text>
+  <!-- Measurement boxes -->
+  <rect x="360" y="10" width="36" height="40" rx="4" fill="#EAEDEA" stroke="#0D284C" stroke-width="2"/>
+  <path d="M 368 40 Q 378 20 388 40" fill="none" stroke="#0D284C" stroke-width="1.5"/>
+  <line x1="378" y1="38" x2="384" y2="20" stroke="#0D284C" stroke-width="1.5"/>
+  <rect x="360" y="90" width="36" height="40" rx="4" fill="#EAEDEA" stroke="#0D284C" stroke-width="2"/>
+  <path d="M 368 120 Q 378 100 388 120" fill="none" stroke="#0D284C" stroke-width="1.5"/>
+  <line x1="378" y1="118" x2="384" y2="100" stroke="#0D284C" stroke-width="1.5"/>
+  <text x="378" y="75" text-anchor="middle" font-family="serif" font-size="16" fill="#0D284C">⋮</text>
+</svg>
 </div>
 <p>We follow the state of the quantum computer through each step.
 Initially the state is <span
@@ -455,7 +489,36 @@ reflects through <span class="math inline">|<em>U</em>⟩</span>.</p></li>
 state by an angle <span class="math inline">2<em>θ</em></span> towards
 <span class="math inline">|<em>G</em>⟩</span>.</p>
 <div class="center">
-<p><em>[TikZ diagram — see PDF]</em></p>
+<svg width="320" height="270" viewBox="0 0 320 270" style="display:block;margin:0 auto;">
+  <!-- Axes -->
+  <!-- |B⟩ horizontal axis -->
+  <line x1="50" y1="230" x2="290" y2="230" stroke="#0D284C" stroke-width="1.5"/>
+  <polygon points="294,230 286,226 286,234" fill="#0D284C"/>
+  <text x="302" y="234" text-anchor="start" font-family="serif" font-size="14" fill="#0D284C">|<tspan font-style="italic">B</tspan>⟩</text>
+  <!-- |G⟩ vertical axis -->
+  <line x1="50" y1="230" x2="50" y2="12" stroke="#0D284C" stroke-width="1.5"/>
+  <polygon points="50,8 46,16 54,16" fill="#0D284C"/>
+  <text x="50" y="6" text-anchor="middle" font-family="serif" font-size="14" fill="#0D284C">|<tspan font-style="italic">G</tspan>⟩</text>
+  <!-- Unit circle arc (dashed) -->
+  <path d="M 210,230 A 160,160 0 0,0 22,72" fill="none" stroke="#0D284C" stroke-width="1" stroke-dasharray="5,4" opacity="0.3"/>
+  <!-- |U⟩ vector at θ=20° (cgblue) -->
+  <line x1="50" y1="230" x2="200" y2="175" stroke="#007CA5" stroke-width="2.5"/>
+  <polygon points="204,173 196,171 198,179" fill="#007CA5"/>
+  <text x="210" y="170" text-anchor="start" font-family="serif" font-size="14" fill="#007CA5">|<tspan font-style="italic">U</tspan>⟩</text>
+  <!-- 𝒢|U⟩ vector at 3θ=60° (munsell) -->
+  <line x1="50" y1="230" x2="130" y2="92" stroke="#008FA8" stroke-width="2.5"/>
+  <polygon points="133,88 124,90 128,98" fill="#008FA8"/>
+  <text x="138" y="84" text-anchor="start" font-family="serif" font-size="14" fill="#008FA8">𝒢|<tspan font-style="italic">U</tspan>⟩</text>
+  <!-- 𝒢²|U⟩ vector at 5θ=100° (banana dark, dashed) -->
+  <line x1="50" y1="230" x2="22" y2="72" stroke="#C8A800" stroke-width="2.5" stroke-dasharray="6,4"/>
+  <text x="6" y="64" text-anchor="start" font-family="serif" font-size="14" fill="#C8A800">𝒢²|<tspan font-style="italic">U</tspan>⟩</text>
+  <!-- Angle arc: θ -->
+  <path d="M 114,230 A 64,64 0 0,0 110,208" fill="none" stroke="#007CA5" stroke-width="1.2"/>
+  <text x="120" y="218" text-anchor="start" font-family="serif" font-style="italic" font-size="12" fill="#007CA5">θ</text>
+  <!-- Angle arc: 3θ -->
+  <path d="M 98,230 A 48,48 0 0,0 74,188" fill="none" stroke="#008FA8" stroke-width="1.2"/>
+  <text x="82" y="200" text-anchor="start" font-family="serif" font-size="12" fill="#008FA8">3<tspan font-style="italic">θ</tspan></text>
+</svg>
 </div>
 </div>
 </details>

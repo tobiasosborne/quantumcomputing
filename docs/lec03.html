@@ -9,8 +9,8 @@
 <script>
 MathJax = {
   tex: {
-    inlineMath: [['\\(','\\)']],
-    displayMath: [['\\[','\\]']],
+    inlineMath: [['\\(','\\)'],['$','$']],
+    displayMath: [['\\[','\\]'],['$$','$$']],
     macros: {
       ket: ['{|#1\\rangle}', 1],
       bra: ['{\\langle#1|}', 1],
@@ -379,7 +379,31 @@ the terms “almost commute” because their commutator is multiplied by
 <span class="math inline"><em>Δ</em><em>t</em><sup>2</sup></span>. The
 total circuit looks like:</p>
 <div class="center">
-<p><em>[TikZ diagram — see PDF]</em></p>
+<svg width="520" height="80" viewBox="0 0 520 80" style="display:block;margin:0 auto;">
+  <!-- Time axis -->
+  <line x1="30" y1="40" x2="490" y2="40" stroke="#0D284C" stroke-width="2"/>
+  <polygon points="494,40 486,36 486,44" fill="#0D284C"/>
+  <text x="502" y="44" text-anchor="start" font-family="serif" font-style="italic" font-size="14" fill="#0D284C">t</text>
+  <!-- Tick marks -->
+  <line x1="50" y1="48" x2="50" y2="32" stroke="#0D284C" stroke-width="1.5"/>
+  <line x1="120" y1="48" x2="120" y2="32" stroke="#0D284C" stroke-width="1.5"/>
+  <line x1="190" y1="48" x2="190" y2="32" stroke="#0D284C" stroke-width="1.5"/>
+  <line x1="260" y1="48" x2="260" y2="32" stroke="#0D284C" stroke-width="1.5"/>
+  <line x1="400" y1="48" x2="400" y2="32" stroke="#0D284C" stroke-width="1.5"/>
+  <line x1="470" y1="48" x2="470" y2="32" stroke="#0D284C" stroke-width="1.5"/>
+  <!-- Tick labels -->
+  <text x="50" y="64" text-anchor="middle" font-family="serif" font-size="12" fill="#0D284C">0</text>
+  <text x="120" y="64" text-anchor="middle" font-family="serif" font-size="12" fill="#0D284C">Δ<tspan font-style="italic">t</tspan></text>
+  <text x="190" y="64" text-anchor="middle" font-family="serif" font-size="12" fill="#0D284C">2Δ<tspan font-style="italic">t</tspan></text>
+  <text x="470" y="64" text-anchor="middle" font-family="serif" font-size="12" fill="#0D284C"><tspan font-style="italic">t</tspan><tspan font-size="10" baseline-shift="-30%">f</tspan></text>
+  <!-- Trotter step labels -->
+  <text x="85" y="24" text-anchor="middle" font-family="serif" font-size="13" fill="#007CA5"><tspan font-style="italic">U</tspan><tspan font-size="10" baseline-shift="-30%">Δ<tspan font-style="italic">t</tspan></tspan></text>
+  <text x="155" y="24" text-anchor="middle" font-family="serif" font-size="13" fill="#007CA5"><tspan font-style="italic">U</tspan><tspan font-size="10" baseline-shift="-30%">Δ<tspan font-style="italic">t</tspan></tspan></text>
+  <text x="225" y="24" text-anchor="middle" font-family="serif" font-size="13" fill="#007CA5"><tspan font-style="italic">U</tspan><tspan font-size="10" baseline-shift="-30%">Δ<tspan font-style="italic">t</tspan></tspan></text>
+  <text x="435" y="24" text-anchor="middle" font-family="serif" font-size="13" fill="#007CA5"><tspan font-style="italic">U</tspan><tspan font-size="10" baseline-shift="-30%">Δ<tspan font-style="italic">t</tspan></tspan></text>
+  <!-- Ellipsis dots -->
+  <text x="330" y="44" text-anchor="middle" font-family="serif" font-size="18" fill="#0D284C">⋯</text>
+</svg>
 </div>
 </div>
 </details>

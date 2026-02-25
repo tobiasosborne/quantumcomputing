@@ -141,7 +141,7 @@ Follows the same three-tier style system as the General Relativity project:
 
 ## Future Work
 
-- Additional TikZ figures to replace `[TikZ diagram — see PDF]` placeholders in HTML
+- ~~Additional TikZ figures to replace `[TikZ diagram — see PDF]` placeholders in HTML~~ ✓ All 8 TikZ placeholders replaced with inline SVG diagrams
 - Trotter convergence interactive visualization
 - Quantum circuit builder/simulator visualization
 - Additional lectures on: quantum error correction, variational algorithms, quantum phase estimation
