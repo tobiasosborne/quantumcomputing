@@ -1,0 +1,171 @@
+\documentclass[12pt,oneside]{amsart}
+
+\usepackage{qc-style}
+\usepackage{qc-macros}
+\usepackage{qc-tikz-templates}
+
+\title[Introduction to Quantum Computing --- Exercises]{Introduction to Quantum Computing\\[0.5em]
+{\large Exercise Sheet}}
+\author{Tobias J.\ Osborne}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\noindent
+Groups of two students may submit together. Calculations with computer
+algebra systems (e.g., Julia, Python, Mathematica) are acceptable if well
+documented.
+
+\bigskip
+
+%% ═══════════════════════════════════════════════════════════════
+%%  PART I: QUANTUM CIRCUITS
+%% ═══════════════════════════════════════════════════════════════
+\section*{Part~I: Quantum circuits}
+\setcounter{section}{1}
+\setcounter{exercise}{0}
+
+\begin{exercise}[Universality of $\NAND$]\label{ex:nand}
+  Show that the $\NAND$ gate can be used to simulate the $\AND$, $\XOR$ and
+  $\NOT$ gates, provided wires and ancilla bits are available.
+\end{exercise}
+
+\begin{exercise}[$\CNOT$ circuit]\label{ex:cnot-circuit}
+  Consider a quantum computer with $3$ qubits, labelled $1$, $2$, and $3$.
+  What is the matrix representation of the quantum circuit
+  $U = \CNOT_{12}\CNOT_{23}$, where the subscripts indicate which qubits
+  the gates act on?  Draw the quantum circuit diagram for this circuit.
+\end{exercise}
+
+\begin{exercise}[Reversible simulation of classical circuits]\label{ex:reversible}
+  Argue that any classical circuit comprising $\AND$, $\OR$, etc.\ gates may
+  be simulated reversibly, i.e., using invertible gates, on a quantum
+  computer.
+\end{exercise}
+
+\begin{exercise}[Controlled-$U$ matrix]\label{ex:controlled-u}
+  What is the matrix representation of a general controlled-$U$ operation,
+  where $U$ is an arbitrary element of $\SU{2}$, in the computational basis?
+\end{exercise}
+
+\begin{exercise}[Two-level unitary decomposition]\label{ex:two-level}
+  Let $U$ be an arbitrary $3\times 3$ unitary matrix.  Find two-level
+  unitary matrices $U_1$, $U_2$, $U_3$ so that $U_3 U_2 U_1 U = \I$.
+  Then generalise to show that an element of $\SU{d}$ can be written as a
+  product of $d(d-1)/2$ two-level unitaries.
+\end{exercise}
+
+\begin{exercise}[Gray codes]\label{ex:gray}
+  Find a Gray code on $n=6$ bits connecting $\mathbf{s} = 101001$ and
+  $\mathbf{t}=110011$.
+\end{exercise}
+
+\begin{exercise}[Implementing a two-level unitary]\label{ex:two-level-impl}
+  Show how to implement the following two-level operation on $n=3$ qubits
+  using controlled unitaries:
+  \begin{equation}
+    U = \begin{pmatrix}
+      a & 0 & 0 & 0 & 0 & 0 & b & 0 \\
+      0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+      0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
+      0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
+      0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+      0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+      c & 0 & 0 & 0 & 0 & 0 & d & 0 \\
+      0 & 0 & 0 & 0 & 0 & 0 & 0 & 1
+    \end{pmatrix},
+  \end{equation}
+  where $\widetilde{U}=\left(\begin{smallmatrix} a & b\\ c & d
+  \end{smallmatrix}\right)$ is unitary.
+  \emph{Hint}: The Gray code $000 \to 010 \to 110$ may be helpful.
+\end{exercise}
+
+%% ═══════════════════════════════════════════════════════════════
+%%  PART II: QUANTUM ALGORITHMS
+%% ═══════════════════════════════════════════════════════════════
+\section*{Part~II: Quantum algorithms}
+\setcounter{section}{2}
+\setcounter{exercise}{0}
+
+\begin{exercise}[Phase oracle from standard oracle]\label{ex:phase-oracle}
+  We argued in the lectures that a standard query, which maps
+  $\ket{j,b}\mapsto \ket{j,b\oplus x_j}$, can be used to implement a
+  phase query $\ket{j}\mapsto (-1)^{x_j}\ket{j}$.  Show that the converse
+  also holds: a standard query can be implemented using
+  \emph{controlled} phase queries (which map
+  $\ket{c,j}\mapsto (-1)^{c\cdot x_j}\ket{c,j}$), possibly with
+  auxiliary qubits and other gates.
+\end{exercise}
+
+\begin{exercise}[Deutsch-Jozsa with workspace]\label{ex:dj-workspace}
+  Suppose we have a 2-bit input $x = x_0 x_1$ and a phase query
+  $\Oxpm:\ket{b} \mapsto (-1)^{x_b}\ket{b}$ for $b\in \{0,1\}$.
+  \begin{enumerate}[(a)]
+    \item Run the 1-qubit circuit $H\Oxpm H$ on $\kezero$ and then measure.
+      What is the probability distribution on the output bit as a function
+      of $x$?
+    \item Now suppose the query leaves workspace in a second qubit:
+      $O'_{x,\pm}:\ket{b,0}\mapsto (-1)^{x_b}\ket{b,b}$.
+      Run the same algorithm on the first qubit (with $H\tp \I$ instead of
+      $H$, initial state $\ket{00}$).  What is the probability distribution
+      on the output of the first qubit?
+  \end{enumerate}
+\end{exercise}
+
+\begin{exercise}[Grover's algorithm step-by-step]\label{ex:grover-explicit}
+  Suppose $n = 2$ and $x = x_{00}x_{01}x_{10}x_{11} = 0001$.  Give the
+  initial state, all intermediate states, and the final state in Grover's
+  algorithm for $k = 1$ iteration.  What is the success probability?
+  Repeat for $k = 2$ iterations.
+\end{exercise}
+
+\begin{exercise}[Grover with $t = N/4$]\label{ex:grover-quarter}
+  Show that if the number of solutions is $t = N/4$, then Grover's algorithm
+  finds a solution with certainty after just one query.  How many queries
+  would a classical algorithm need to find a solution with certainty if
+  $t = N/4$?  And if we allow the classical algorithm error probability
+  $1/10$?
+\end{exercise}
+
+%% ═══════════════════════════════════════════════════════════════
+%%  PART III: QUANTUM SIMULATION
+%% ═══════════════════════════════════════════════════════════════
+\section*{Part~III: Quantum simulation}
+\setcounter{section}{3}
+\setcounter{exercise}{0}
+
+\begin{exercise}[Commuting Hamiltonians]\label{ex:commuting-ham}
+  For $H = \sum_{j=1}^L h_j$, prove that
+  $U(t) = e^{-iHt} = \prod_{j=1}^L e^{-ih_jt}$ for all $t$ if and only if
+  $\comm{h_j}{h_k}= 0$ for all $j,k$.
+\end{exercise}
+
+\begin{exercise}[Counting local terms]\label{ex:local-terms}
+  Argue that the restriction of each $h_j$ to involve at most $c$ qubits
+  implies that the number $L$ of terms in
+  $H = \sum_{j=1}^L h_j$ is upper bounded by a polynomial in $n$.
+\end{exercise}
+
+\begin{exercise}[Trotter error for the Ising model \textbf{(computational)}]\label{ex:trotter-error}
+  Consider the transverse-field Ising Hamiltonian on $n=4$ qubits:
+  \[
+    H = \sum_{j=1}^{3} \paulix_j\paulix_{j+1}
+    + \lambda \sum_{j=1}^4 \pauliz_j,
+  \]
+  with $\lambda = 0.5$.
+  \begin{enumerate}[(a)]
+    \item Write a Julia program that computes $U(t) = e^{-iHt}$ exactly
+      (as a $16\times 16$ matrix) for $t=1$.
+    \item Implement the first-order Trotter approximation
+      $\widetilde{U}(t,n) = \bigl(\prod_{j} e^{-ih_j t/n}\bigr)^n$ and
+      compute the operator-norm error
+      $\norm{U(t)-\widetilde{U}(t,n)}$ for
+      $n \in \{1, 2, 5, 10, 20, 50, 100\}$.
+    \item Plot the error as a function of $n$ on a log-log scale and verify
+      the predicted $\bigO{1/n}$ scaling.
+  \end{enumerate}
+\end{exercise}
+
+\end{document}

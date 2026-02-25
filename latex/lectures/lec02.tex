@@ -1,0 +1,375 @@
+% !TEX root = ../QuantumComputing.tex
+%% Lecture 2: Quantum Algorithms
+%% Based on original notes by T.J. Osborne, enriched and unified
+
+\section{Quantum algorithms}\label{sec:algorithms}
+
+\begin{historical}[The dawn of quantum algorithms]
+  The discovery of efficient quantum algorithms marks one of the great
+  intellectual achievements of the late twentieth century.  In 1994, Peter
+  Shor~\cite{Shor1994} showed that a quantum computer could factor integers
+  in polynomial time, threatening the security of RSA encryption.  Two years
+  later, Lov Grover~\cite{Grover1996} demonstrated a quadratic speedup for
+  unstructured search.  In 2009, Harrow, Hassidim, and
+  Lloyd~\cite{HHL2009} showed that quantum computers could solve certain
+  linear systems exponentially faster than any known classical algorithm.
+  These three results continue to form the conceptual foundation for most
+  quantum algorithms discovered since.
+\end{historical}
+
+\subsection{Overview}\label{subsec:algo-overview}
+
+The two most celebrated quantum algorithms are Shor's factoring algorithm
+(1994) and Grover's search algorithm (1996).  A third important example,
+possibly more relevant for near-term applications, is the
+Harrow-Hassidim-Lloyd (HHL) linear-systems algorithm (2008).  For a
+comprehensive catalogue of quantum algorithms, see the
+\emph{Quantum Algorithm Zoo}\footnote{\url{https://quantumalgorithmzoo.org/}}.
+
+Although there are now very many quantum algorithms, they can often be traced
+back fairly directly to one of these three.  It is fair to say that our
+understanding of the \emph{discovery} and \emph{design} of quantum
+algorithms is still in its infancy.  The field of \emph{quantum software
+  engineering}, which would presumably supply robust design practices and
+patterns, has not yet been fully developed.
+
+\begin{intuition}[What is quantum advantage?]
+  A quantum algorithm provides a \emph{quantum advantage} (or
+  \emph{quantum speedup}) when it solves a computational problem using
+  asymptotically fewer resources (time, queries, or gates) than any known
+  classical algorithm for the same problem.  Advantages can be:
+  \begin{itemize}
+    \item \textbf{Exponential}: $\bigO{\poly{n}}$ vs.\ $2^{\Omega(n)}$
+      (e.g., Shor's algorithm for factoring).
+    \item \textbf{Polynomial}: $\bigO{\sqrt{N}}$ vs.\ $\bigO{N}$
+      (e.g., Grover's search).
+    \item \textbf{Provable}: demonstrated via lower bounds in a query or
+      communication model.
+    \item \textbf{Heuristic}: observed empirically but without rigorous
+      worst-case guarantees (e.g., variational quantum algorithms).
+  \end{itemize}
+  Understanding which problems admit quantum speedups, and why, remains one
+  of the central open questions in quantum computing.
+\end{intuition}
+
+\subsection{The query model}\label{subsec:query-model}
+
+To explain the query setting, consider an $N$-bit input
+$x = (x_0, \ldots , x_{N-1}) \in \{0, 1\}^{\times N}$.  Usually we take
+$N=2^n$, so that bit $x_j$ can be addressed using an $n$-bit index $j$.
+One can think of the input as an $N$-bit memory which we can access at any
+point of our choice (a ``Random Access Memory'', or RAM).
+
+Memory accesses are modelled via ``black-box'' unitary operations:
+
+\begin{definition}[Standard query oracle]\label{def:standard-oracle}
+  The \emph{standard query oracle} for an $N$-bit string
+  $x\in\{0,1\}^{\times N}$ is the unitary on $n+1$ qubits defined by
+  \begin{equation}
+    \eqbox{\Ox:\ket{j,b} \mapsto \ket{j,b\oplus x_j},}
+  \end{equation}
+  where $j\in \{0,1\}^{\times n}$, $b\in \{0,1\}$, and $\oplus$ denotes
+  addition modulo~$2$.  The first $n$ qubits are the \emph{address register}
+  and the $(n+1)$st qubit is the \emph{target bit}.
+\end{definition}
+
+As a matrix, $\Ox$ is a permutation matrix and hence unitary.  Because $\Ox$
+is a quantum operation, a quantum computer can apply it on a
+\emph{superposition} of addresses~$j$---something a classical computer
+cannot do.
+
+\begin{definition}[Phase oracle]\label{def:phase-oracle}
+  Given the ability to make a standard query, we can also make a
+  \emph{phase query} by setting the target bit to
+  $\keminus = \frac{1}{\sqrt{2}}(\kezero - \keone) = H\keone$:
+  \begin{equation}
+    \Ox \ket{j}\keminus = (-1)^{x_j}\ket{j}\keminus.
+  \end{equation}
+  The corresponding $n$-qubit unitary (ignoring the ancilla in the fixed
+  state $\keminus$) is
+  \begin{equation}
+    \eqbox{\Oxpm\ket{j} = (-1)^{x_j}\ket{j}.}
+  \end{equation}
+\end{definition}
+
+\begin{intuition}[Phase kickback]
+  The technique of placing the answer in the \emph{phase} rather than in a
+  register is called \emph{phase kickback}.  It is a fundamental trick in
+  quantum computing: the ancilla qubit $\keminus$ is an eigenstate of
+  $X$ with eigenvalue $-1$, so the oracle's action ``kicks back'' the
+  function value $x_j$ as a phase $(-1)^{x_j}$ onto the address register.
+  This trick underlies the Deutsch-Jozsa algorithm, Grover's algorithm,
+  and quantum phase estimation.
+\end{intuition}
+
+\subsection{The Deutsch-Jozsa algorithm}\label{subsec:deutsch-jozsa}
+
+\begin{keyresult}[The Deutsch-Jozsa problem]
+  For $N=2^n$, we are given $x\in \{0,1\}^{\times N}$ such that either:
+  \begin{enumerate}
+    \item all $x_j$ have the same value (``constant''); or
+    \item half ($N/2$) of the $x_j$ are $0$ and the other half are $1$
+      (``balanced'').
+  \end{enumerate}
+  The objective is to determine which situation holds.
+\end{keyresult}
+
+\begin{algorithmbox}[Deutsch-Jozsa algorithm~\cite{DeutschJozsa1992}]
+  \begin{enumerate}
+    \item Initialise an $n$-qubit state in $\kezero^{\tp n}$.
+    \item Apply a Hadamard gate to each qubit: $H^{\tp n}$.
+    \item Apply $\Oxpm$ to the qubits.
+    \item Apply $H^{\tp n}$ again.
+    \item Measure all qubits in the computational basis.
+  \end{enumerate}
+  The complete quantum algorithm is the unitary
+  \begin{equation}
+    \eqbox{U_{\mathrm{DJ}} \equiv H^{\tp n}\Oxpm H^{\tp n}.}
+  \end{equation}
+\end{algorithmbox}
+
+The circuit for the Deutsch-Jozsa algorithm is:
+\begin{center}
+\begin{tikzpicture}[scale=0.9]
+  % Wires
+  \foreach \i in {1,...,3} {
+    \draw[qwire] (0,{-\i}) -- (10,{-\i});
+  }
+  % Dots for n qubits
+  \node at (0,-2) {};
+  % Labels
+  \node[anchor=east,font=\small] at (0,-1) {$\kezero$};
+  \node[anchor=east,font=\small] at (0,-2) {$\vdots$};
+  \node[anchor=east,font=\small] at (0,-3) {$\kezero$};
+  % H gates (first round)
+  \node[gate] at (1.5,-1) {$H$};
+  \node[gate] at (1.5,-3) {$H$};
+  \node at (1.5,-2) {$\vdots$};
+  % Oracle
+  \node[gate, minimum width=1.2cm, minimum height=2.8cm] at (4,-2) {$\Oxpm$};
+  % H gates (second round)
+  \node[gate] at (6.5,-1) {$H$};
+  \node[gate] at (6.5,-3) {$H$};
+  \node at (6.5,-2) {$\vdots$};
+  % Measurement
+  \qcmeas{8.5}{1}
+  \qcmeas{8.5}{3}
+  \node at (8.5,-2) {$\vdots$};
+\end{tikzpicture}
+\end{center}
+
+We follow the state of the quantum computer through each step.  Initially
+the state is $\kezero^{\tp n}$.  After the first Hadamard transform:
+\begin{equation}
+  H^{\tp n}\kezero^{\tp n}
+  = \frac{1}{\sqrt{2^n}}\sum_{j\in \{0,1\}^{\times n}} \ket{j}.
+\end{equation}
+After the phase oracle:
+\begin{equation}
+  \Oxpm H^{\tp n}\kezero^{\tp n}
+  = \frac{1}{\sqrt{2^n}}\sum_{j\in \{0,1\}^{\times n}} (-1)^{x_j}\ket{j}.
+\end{equation}
+After the second Hadamard:
+\begin{equation}
+  H^{\tp n}\Oxpm H^{\tp n}\kezero^{\tp n}
+  = \frac{1}{2^n}\sum_{j\in \{0,1\}^{\times n}}(-1)^{x_j}
+  \sum_{k\in \{0,1\}^{\times n}} (-1)^{j\cdot k}\ket{k},
+\end{equation}
+where $j\cdot k \equiv \sum_{l=1}^n j_l k_l$.  Since
+$j\cdot \mathbf{0} = 0$ for all $j$, the amplitude of the
+$\kezero^{\tp n}$ state in the final superposition is
+\begin{equation}
+  \frac{1}{2^n}\sum_{j\in \{0,1\}^{\times n}}(-1)^{x_j} = \begin{cases}
+    1  & \text{if $x_j=0$ for all $j$ (constant $0$),} \\
+    -1 & \text{if $x_j=1$ for all $j$ (constant $1$),} \\
+    0  & \text{if $x$ is balanced.}
+  \end{cases}
+\end{equation}
+Hence the final measurement yields $\kezero^{\tp n}$ with certainty if $x$
+is constant, and yields some other state if $x$ is balanced.
+
+\begin{keyresult}[Deutsch-Jozsa complexity]
+  The Deutsch-Jozsa problem can be solved with certainty using only
+  \textbf{1~quantum query} and $\bigO{n}$ other operations.  Any classical
+  deterministic algorithm needs at least $N/2 + 1$ queries.
+\end{keyresult}
+
+\begin{remark}
+  The quantum-classical separation for Deutsch-Jozsa only holds for
+  \emph{deterministic} algorithms.  A classical \emph{randomised} algorithm
+  can solve this problem efficiently: query $x$ at two random positions;
+  output ``constant'' if those bits are the same and ``balanced'' if they
+  differ.  This succeeds with probability at least $1/2$ when $x$ is
+  balanced.
+\end{remark}
+
+
+\subsection{Grover's search algorithm}\label{subsec:grover}
+
+The second most important quantum algorithm after Shor's is Grover's search
+algorithm~\cite{Grover1996}.  It provides a \emph{quadratic} speedup---not
+exponential---but is far more widely applicable.
+
+\subsubsection{The search problem}
+
+\begin{keyresult}[Unstructured search problem]
+  For $N=2^n$, given $x\in \{0,1\}^{\times N}$, find a $j$ such that
+  $x_j = 1$ (or output ``no solutions'' if no such $j$ exists).  We denote
+  the number of solutions by $t$ (the Hamming weight of $x$).
+\end{keyresult}
+
+This problem models searching an $N$-slot unordered database. Classically,
+a randomised algorithm needs $\Theta(N)$ queries.  Grover's algorithm solves
+it in $\bigO{\sqrt{N}}$ queries and $\bigO{\sqrt{N}\log N}$ other gates.
+
+\subsubsection{The Grover iterate}
+
+We again exploit the phase oracle $\Oxpm\ket{j} = (-1)^{x_j}\ket{j}$.
+Define the \emph{zero-reflection}:
+\begin{equation}
+  R_0\ket{j} \equiv \begin{cases}
+    \ket{\mathbf{0}} & \text{if } j= \mathbf{0}, \\
+    -\ket{j}         & \text{if } j\not= \mathbf{0}.
+  \end{cases}
+\end{equation}
+That is, $R_0 = 2\ketbra{\mathbf{0}}{\mathbf{0}} - \I$.
+
+\begin{definition}[Grover iterate]\label{def:grover-iterate}
+  The \emph{Grover iterate} (or \emph{Grover diffusion operator}) is
+  \begin{equation}
+    \eqbox{\mathcal{G} \equiv H^{\tp n}R_0 H^{\tp n}\Oxpm
+    = \left(2\ket{U}\bra{U} - \I\right)\Oxpm,}
+  \end{equation}
+  where $\ket{U} = H^{\tp n}\kezero^{\tp n}
+  = \frac{1}{\sqrt{N}}\sum_j\ket{j}$ is the uniform superposition.
+  A single Grover iterate uses one query and $\bigO{\log N}$ other gates.
+\end{definition}
+
+\begin{algorithmbox}[Grover's algorithm~\cite{Grover1996}]
+  \begin{enumerate}
+    \item Prepare the uniform superposition
+      $\ket{U} = H^{\tp n}\kezero^{\tp n}$.
+    \item Apply the Grover iterate $\mathcal{G}$ a total of $k$ times (for
+      some $k$ to be determined).
+    \item Measure the final state in the computational basis.
+    \item Verify whether the result $j$ satisfies $x_j=1$.
+  \end{enumerate}
+\end{algorithmbox}
+
+\subsubsection{Geometric analysis}\label{subsubsec:grover-geometry}
+
+There is an elegant geometric argument for the correctness of Grover's
+algorithm.  Define the ``good'' and ``bad'' states:
+\begin{equation}
+  \ket{G} \equiv  \frac{1}{\sqrt{t}}\sum_{\substack{j:\\x_j=1}}\ket{j},
+  \qquad
+  \ket{B} \equiv  \frac{1}{\sqrt{N-t}}\sum_{\substack{j:\\x_j=0}}\ket{j}.
+\end{equation}
+Then the uniform state can be written as
+\begin{equation}
+  \ket{U} = \sin(\theta)\ket{G} + \cos(\theta)\ket{B},
+  \qquad \text{where }
+  \theta = \sin^{-1}\!\left(\sqrt{t/N}\right).
+\end{equation}
+
+\begin{intuition}[Grover's algorithm as rotation]
+  The Grover iterate $\mathcal{G}$ is the product of two reflections in the
+  2-dimensional real plane spanned by $\ket{G}$ and $\ket{B}$:
+  \begin{enumerate}
+    \item $\Oxpm$ reflects through $\ket{B}$
+      (i.e., $\Oxpm = \I - 2\ketbra{G}{G}$ restricted to this plane).
+    \item $2\ket{U}\bra{U}-\I$ reflects through $\ket{U}$.
+  \end{enumerate}
+  Each application of $\mathcal{G}$ rotates the state by an angle $2\theta$
+  towards $\ket{G}$.
+
+  \begin{center}
+    \begin{tikzpicture}[scale=1.8]
+      % Axes
+      \draw[->,spacecadet,thick] (0,0) -- (2.5,0)
+        node[right,font=\small] {$\ket{B}$};
+      \draw[->,spacecadet,thick] (0,0) -- (0,2.2)
+        node[above,font=\small] {$\ket{G}$};
+      % Initial state |U>
+      \draw[->,cgblue,very thick] (0,0) -- ({2*cos(20)},{2*sin(20)})
+        node[above right,font=\small] {$\ket{U}$};
+      % After 1 iterate
+      \draw[->,munsell,very thick] (0,0) -- ({2*cos(60)},{2*sin(60)})
+        node[above right,font=\small] {$\mathcal{G}\ket{U}$};
+      % After 2 iterates
+      \draw[->,banana!80!black,very thick,dashed] (0,0) -- ({2*cos(100)},{2*sin(100)})
+        node[above left,font=\small] {$\mathcal{G}^2\ket{U}$};
+      % Angle arcs
+      \draw[cgblue,thin] (0.8,0) arc (0:20:0.8);
+      \node[cgblue,font=\scriptsize] at (1.0,0.15) {$\theta$};
+      \draw[munsell,thin] (0.6,0) arc (0:60:0.6);
+      \node[munsell,font=\scriptsize] at (0.55,0.35) {$3\theta$};
+      % Unit circle arc
+      \draw[spacecadet!30,thin,dashed] (2,0) arc (0:110:2);
+    \end{tikzpicture}
+  \end{center}
+\end{intuition}
+
+After $k$ applications of $\mathcal{G}$, the state becomes
+\begin{equation}
+  \mathcal{G}^k\ket{U}
+  = \sin\bigl((2k + 1)\theta\bigr)\ket{G}
+  + \cos\bigl((2k + 1)\theta\bigr)\ket{B}.
+\end{equation}
+The probability of observing a solution upon measurement is
+\begin{equation}
+  P_k = \sin^2\bigl((2k + 1)\theta\bigr).
+\end{equation}
+
+We want $P_k$ close to $1$.  Setting
+$\widetilde{k} = \frac{\pi}{4\theta} - \frac{1}{2}$ gives
+$(2\widetilde{k}+1)\theta = \pi/2$ and hence
+$P_{\widetilde{k}} = 1$.
+
+\begin{example}[$t = N/4$]
+  If $t = N/4$ then $\theta = \pi/6$ and $\widetilde{k} = 1$.
+  Thus a single Grover iteration suffices to find a solution with certainty.
+\end{example}
+
+In general $\widetilde{k}$ is not an integer.  Choosing $k$ to be the
+nearest integer, we bound the failure probability:
+\begin{equation}
+  \begin{split}
+    1-P_k &= \cos^2\bigl((2k+1)\theta\bigr)
+    = \sin^2\bigl(2(k-\widetilde{k})\theta\bigr) \\
+    &\le \sin^2(\theta) = \frac{t}{N},
+  \end{split}
+\end{equation}
+where we used $|k-\widetilde{k}|\le \frac{1}{2}$.  Since
+$\sin^{-1}(\sqrt{t/N})\ge \sqrt{t/N}$, the number of queries is
+\begin{equation}
+  \eqbox{k\le \frac{\pi}{4}\sqrt{\frac{N}{t}}.}
+\end{equation}
+
+\subsubsection{Variants and extensions of Grover's algorithm}
+
+\begin{itemize}
+  \item \textbf{Exact search}: If $t$ is known exactly, the algorithm can
+    be tweaked to end up in exactly $\ket{G}$ by adjusting $\theta$.
+
+  \item \textbf{Unknown $t$}: If we do not know $t$, running the algorithm
+    with exponentially increasing guesses for $k$ still gives an expected
+    query count of $\bigO{\sqrt{N/t}}$.  If $t=0$, this is detected by
+    verifying $x_j$ for the output $j$.
+
+  \item \textbf{Known lower bound}: If $\tau \le t$ is a known lower bound,
+    the algorithm uses an expected $\bigO{\sqrt{N/\tau}}$ queries.
+
+  \item \textbf{Boosted error reduction}: To reduce the failure probability
+    to $\epsilon$, one can use $\bigO{\sqrt{N \log(1/\epsilon)}}$
+    queries---note the $\log(1/\epsilon)$ is \emph{inside} the square root,
+    which is better than naive repetition giving
+    $\bigO{\sqrt{N}\log(1/\epsilon)}$.
+\end{itemize}
+
+\begin{remark}
+  Grover's $\bigO{\sqrt{N}}$ query complexity is \emph{optimal}: Bennett,
+  Bernstein, Brassard, and Vazirani (1997) proved that any quantum algorithm
+  for unstructured search requires $\Omega(\sqrt{N})$ queries.  This is one
+  of the few known tight quantum lower bounds.
+\end{remark}

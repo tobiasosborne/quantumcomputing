@@ -1,0 +1,330 @@
+\documentclass[12pt,oneside]{amsart}
+
+%\usepackage[T1]{fontenc}
+%\usepackage[utf8]{inputenc}
+\usepackage[german]{babel}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{a4paper}                   % ... or a4paper or a5paper or ... 
+\usepackage{color}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage[mtphrb,mtpcal,mtpfrak]{mtpro2}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows.meta}
+\usepackage[shortalphabetic]{amsrefs}
+\usepackage{wrapfig}
+\usepackage[textsize=tiny]{todonotes}
+\usepackage[many]{tcolorbox}
+\usepackage{pgfplots}
+\usepackage{booktabs}
+\usepgfplotslibrary{patchplots}
+\usepgfplotslibrary{fillbetween}
+
+%\usepackage[no-math]{fontspec}
+%\setsansfont[Scale=0.92]{Helvetica Neue LT Std 65 Medium}
+%\usepackage[scaled=0.92]{helvet}
+%\usepackage{times}
+
+
+
+\usepackage{mathspec}
+\setmathrm{Times LT Std}
+\setmainfont[BoldFont=Times LT Std Bold, ItalicFont=Times LT Std Italic, BoldItalicFont=Times LT Std Bold Italic, Ligatures=TeX]{Times LT Std}
+
+%\setmainfont{Baskerville URW}
+
+%\setsansfont[Scale=0.92,BoldFont=Helvetica Neue LT Std 65 Medium,
+%    ItalicFont=Helvetica Neue LT Std 56 Italic,
+%    BoldItalicFont=Helvetica Neue LT Std 66 Medium Italic,
+%    Ligatures=TeX]{Helvetica Neue LT Std 55 Roman}
+\setsansfont[BoldFont=Whitney-Semibold.otf,ItalicFont=Whitney-MediumItalic.otf,Ligatures=TeX]{Whitney-Medium.otf}
+\setboldmathrm[BoldFont={Times LT Std Bold}]{Times LT Std Bold}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\definecolor{light-gray}{gray}{0.85}
+
+%%% here we define our palette
+
+\definecolor{spacecadet}{HTML}{0D284C}
+\definecolor{munsell}{HTML}{008FA8}
+\definecolor{banana}{HTML}{FFD932}
+\definecolor{cgblue}{HTML}{007CA5}
+\definecolor{isabelline}{HTML}{EAEDEA}
+
+%%%
+
+\makeatletter
+\def\@secnumfont{\bfseries}
+\def\part{\@startsection{part}{0}%
+  \z@{\linespacing\@plus\linespacing}{.5\linespacing}%
+  {\normalfont\bfseries\raggedright}}
+\def\specialsection{\@startsection{section}{1}%
+  \z@{\linespacing\@plus\linespacing}{.5\linespacing}%
+  {\color{cgblue}\normalfont\centering}}
+\def\section{\@startsection{section}{1}%
+  \z@{.7\linespacing\@plus\linespacing}{.5\linespacing}%
+  {\color{cgblue}\normalfont\sf\bfseries\large\centering}}
+\def\subsection{\@startsection{subsection}{2}%
+  \z@{.5\linespacing\@plus.7\linespacing}{-.5em}%
+  {\color{cgblue}\normalfont\sf\bfseries}}
+\def\subsubsection{\@startsection{subsubsection}{3}%
+  \z@{.5\linespacing\@plus.7\linespacing}{-.5em}%
+  {\color{cgblue}\normalfont\sf\itshape}}
+\def\paragraph{\@startsection{paragraph}{4}%
+  \z@\z@{-\fontdimen2\font}%
+  \color{cgblue}\sf\normalfont}
+\def\subparagraph{\@startsection{subparagraph}{5}%
+  \z@\z@{-\fontdimen2\font}%
+  \color{cgblue}\sf\normalfont}
+\makeatother
+
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\conf}{conf}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\im}{im}
+\DeclareMathOperator{\id}{id}
+\DeclareMathOperator{\vspan}{span}
+\DeclareMathOperator{\res}{res}
+\DeclareMathOperator{\real}{Re}
+\DeclareMathOperator{\imag}{Im}
+\DeclareMathOperator{\diff}{diff}
+\DeclareMathOperator{\homeo}{Homeo}
+\DeclareMathOperator{\Mor}{Mor}
+\DeclareMathOperator{\Ob}{Ob}
+\DeclareMathOperator{\target}{Target}
+\DeclareMathOperator{\source}{Source}
+\DeclareMathOperator{\aut}{Aut}
+\DeclareMathOperator{\Sch}{Sch}
+
+\theoremstyle{plain}% default
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem*{corollary}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}{\color{cgblue}Definition}[section]
+\newtheorem{prototypedefinition}{Prototype Definition}[section]
+\newtheorem{physicalintuition}{Physical intuition}[section]
+\newtheorem{conjecture}{Conjecture}[section]
+\newtheorem{beispiel}{\color{cgblue}Beispiel}[section]
+\newtheorem{übung}{\color{cgblue}Übung}[section]
+\newtheorem{exercise}{\color{cgblue}Exercise}[section]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{note}{Note}
+
+\newenvironment{lösung}
+  {\begin{proof}[\color{cgblue}Lösung]\color{spacecadet}}
+  {\end{proof}}
+
+\def\eqbox#1{\tcboxmath[colback=banana,arc=0cm,frame hidden,enhanced]{#1}}
+\def\figbox{\begin{center}\tcboxmath[colback=isabelline,frame hidden,enhanced,sharp corners]{\parbox[c][3cm][c]{10cm}{\ }}\end{center}}
+
+\title[Quantencomputing und Quantenlogik mit gespeicherten Ionen]{Quantencomputing und Quantenlogik mit gespeicherten Ionen: Quantum gate operations and the circuit model}
+\author{Tobias J.\ Osborne}
+\date{\today}                                           % Activate to display a given date or no date
+
+\begin{document}
+
+\maketitle
+
+\section{Classical computation}
+\subsection{Circuits}
+
+Here we discuss the theoretical model underlying classical computation.
+
+A \emph{boolean circuit} is made up of \emph{wires} and \emph{gates} which carry information around, and perform simple computational tasks, respectively. These are theoretical abstractions and may, or may not, be directly identifiable with actual wires and gates (made from transistors).
+\begin{center}
+  \includegraphics[width = 0.3\textwidth]{notgate.jpg}
+\end{center}
+This example shows a simple circuit which takes as input a single bit, $a$. This bit is passed through a {\sc not} gate, which flips the bit, taking $1$ to $0$ and $0$ to $1$. The wires before and after the {\sc not} gate serve merely to carry the bit to and from the {\sc not} gate; they represent movement of the bit through space, or perhaps just through time.
+
+More generally, a \emph{circuit} may involve many input and output bits, many wires, and many logical gates. A \emph{logic gate} is a \emph{boolean function} 
+\begin{equation}
+  \eqbox{f:\{0,1\}^{\times k} \rightarrow \{0,1\}^{\times l}}
+\end{equation}
+from some fixed number $k$ of input bits to some fixed number $l$ of output bits. For example, the {\sc not} gate
+is a gate with one input bit and one output bit which computes the function $f(a) = 1\oplus a \equiv \overline{a}$,
+where $a$ is a single bit, and $\oplus$ is modulo $2$ addition. It is also usual to make the convention that no loops are allowed in the circuit, to avoid possible instabilities. We say such a circuit is \emph{acyclic} and we adhere to the convention that circuits in the circuit model of computation be acyclic.
+
+There are many other elementary logic gates which are useful for computation. A partial list includes the {\sc and} gate, the {\sc or} gate, the {\sc xor} gate, the {\sc nand} gate, and the {\sc nor} gate. Each of these gates takes two bits as input, and produces a single bit as output. The {\sc and} gate outputs $1$ if and only if both of its inputs are $1$. The {\sc or} gate outputs $1$ if and only if at least one of its inputs is $1$. The {\sc xor} gate outputs the sum, modulo $2$, of its inputs. The {\sc nand} and {\sc nor} gates take the {\sc and} and {\sc or}, respectively, of their inputs, and then apply a {\sc not} to whatever is output: 
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{gates.jpg}
+\end{center}
+There are two important ``gates'' missing from this figure, namely the {\sc fanout} gate and the {\sc crossover} gate: In circuits we often allow bits to ``divide'', replacing a bit with two copies of itself, an operation referred to as {\sc fanout}. We also allow bits to {\sc crossover}, that is, the value of two bits are interchanged. A third operation missing, not really a logic gate at all, is to allow the preparation of extra ancilla or work bits, to allow extra working space during the computation.
+
+\subsection{Universality}
+Just a few fixed gates can be used to compute any function $f:\{0,1\}^{\times n} \rightarrow \{0,1\}^{\times m}$ whatsoever. Once can prove this for the simplified case of a function $f:\{0,1\}^{\times n} \rightarrow \{0,1\}$ with $n$ input bits and a single output bit. The general universality proof follows immediately from this special case.
+\begin{exercise}
+  Carry out this proof. Start with $n=1$: Here there are four possibilities which can be implemented using {\sc not}, {\sc and}, and {\sc or} gates. To complete the induction, suppose that any function on $n$ bits may be computed by a circuit, and let $f$ be a function on $n + 1$ bits. Define $n$-bit functions $f_0$ and $f_1$ by $f_0(x_1, \ldots, x_n) \equiv f(0, x_1, \ldots, x_n)$ and $f_1(x_1, \ldots, x_n) \equiv f(1, x_1, \ldots, x_n)$. These are both $n$-bit functions, so by the inductive hypothesis there are circuits to compute these functions. Now design a circuit which computes $f$ by computing $f_0$ and $f_1$ on the last $n$ bits of the input. Then, depending on whether the first bit of the input was a $0$ or a $1$ it outputs the appropriate answer. Five elements may be identified in the universal circuit construction: (1) wires, which preserve the states of the bits; (2) ancilla bits prepared in standard states, used in the $n = 1$ case of the proof; (3) the {\sc fanout} operation, which takes a single bit as input and outputs two copies of that bit; (4) the {\sc crossover} operation, which interchanges the value of two bits; and (5) the {\sc and}, {\sc xor}, and {\sc not} gates.
+\end{exercise}
+
+\begin{exercise}[Universality of {\sc nand}]
+   Show that the {\sc nand} gate can be used to simulate the {\sc and}, {\sc xor} and {\sc not} gates, provided wires, ancilla bits and are available.
+\end{exercise}
+
+\section{Quantum computation}
+\subsection{The quantum circuit model}
+For us the term \emph{quantum computer} is synonymous with the \emph{quantum circuit model} of computation. Here we provide a detailed look at quantum circuits, their basic elements, universal families of gates, and some applications. Before we move on to more detailed descriptions, let us summarize the key elements of the quantum circuit model of computation:
+\begin{enumerate}
+  \item \textbf{Classical resources}: a quantum computer consists of two parts, a \emph{classical} part and a \emph{quantum} part. In principle, there is no need for the classical part of the computer because classical computations can always be done, in, principle, on a quantum computer. In practice, however, certain tasks may be made much easier if parts of the computation can be done classically
+  \item \textbf{A suitable state space}: a quantum circuit operates on some number, $n$, of qubits. The state space is thus the $2^n$-dimensional complex Hilbert space $(\mathbb{C}^2)^{\otimes n}$. Product states of the form  $|x_1\rangle|x_2\rangle\cdots |x_n\rangle$, where $x_j \in \{0,1\}$, are known as \emph{computational basis states} of the computer.
+  \item \textbf{Ability to prepare states in the computational basis}: it is assumed that any computational basis state $|x_1\rangle|x_2\rangle\cdots |x_n\rangle$ can be prepared in at most $n$ steps. 
+  \item \textbf{Ability to perform quantum gates}: unitary operations called \emph{quantum gates} can be applied to any subset of the qubits as desired, and a \emph{universal family} of gates can be implemented. 
+  \item \textbf{Ability to perform measurements in the computational basis}: measurements may be performed in the computational basis of one or more of the qubits in the computer.
+\end{enumerate}
+
+\subsubsection{Single-qubit operations}
+Any $2\times 2$ unitary operator is called a \emph{single-qubit operation}. While there is an uncountable infinity of such operations, quantum circuits often comprise one of a handful of specific gates, e.g.:
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{xyz.png}
+  \includegraphics[width=0.5\textwidth]{hst.png}
+\end{center}
+These gates can be visualised via \emph{quantum circuit diagrams}:
+\begin{center}
+  \includegraphics[width=0.5\textwidth]{sqcircuits.jpg}
+\end{center}
+It turns out that any $\textsl{SU}(2)$ operator can be approximated by a product of a finite number of these gates; this is the content of the \emph{Solovay-Kitaev theorem} (or ``algorithm'': see, e.g., \texttt{https://arxiv.org/abs/quant-ph/0505030}). The Solovay-Kitaev (SK) theorem is one of the most important fundamental results in the theory of quantum computation. In its simplest form the SK theorem shows that, roughly speaking, if a set of single-qubit quantum gates generates a dense subset of $\textsl{SU}(2)$, then that set is guaranteed to fill $\textsl{SU}(2)$ quickly, i.e., it is possible to obtain good approximations to any desired gate using surprisingly short sequences of gates from the given generating set.
+
+\subsubsection{Controlled operations}
+``If $A$ is true, then do $B$'' is one of the most useful operations in computing, both classical and quantum. 
+
+The prototypical controlled operation is the controlled-{\sc not}. This gate, which we'll often refer to as {\sc cnot}, is a quantum gate with two input qubits, known as the \emph{control qubit} and \emph{target} qubit respectively. Its quantum circuit diagram is
+\begin{center}
+  \includegraphics{cnot.jpg}
+\end{center}
+In terms of the computational basis, the action of the {\sc cnot} is given by $|c\rangle|t\rangle\mapsto |c\rangle|t\oplus 1\rangle$; that is, if the control qubit is set to $|1\rangle$ then the target qubit is flipped, otherwise the target qubit is left alone. Thus, in the computational basis the matrix representation of {\sc cnot} is:
+\begin{equation}
+  \textsc{cnot} \equiv \begin{pmatrix}
+    1 & 0 & 0 & 0  \\
+    0 & 1 & 0 & 0  \\
+    0 & 0 & 0 & 1  \\
+    0 & 0 & 1 & 0  \\
+  \end{pmatrix}.
+\end{equation}
+\begin{exercise}
+  Consider a quantum computer with $3$ qubits, labelled $1$, $2$, and $3$. What is the matrix representation of the quantum circuit $U = \textsc{cnot}_{12}\textsc{cnot}_{23}$, where the subscripts indicate which qubits the gates act on. What is the quantum circuit diagram for this quantum circuit?
+\end{exercise}
+\begin{exercise}[Lengthy]
+  Show that any classical circuit comprising {\sc and}, {\sc or}, etc.\ gates may be simulated reversibly, i.e., using invertible gates, using a quantum computer.
+\end{exercise}
+
+Now that we know how to condition on a single qubit being set, what about conditioning on multiple qubits? An example of multiple-qubit conditioning is the {\sc toffoli} gate, which flips the third qubit, the target qubit, conditioned on the first two qubits, the control qubits, being set to one:
+\begin{center}
+  \includegraphics[width=0.3\textwidth]{toffoli.jpg}
+\end{center}
+More generally, suppose we have $n + k$ qubits, and $U$ is a $k$-qubit unitary operator. Then we define the controlled operation $C^n(U)$ by the equation
+\begin{equation}
+  C^n(U)|x_1\rangle|x_2\rangle\cdots |x_n\rangle|\psi\rangle = |x_1\rangle|x_2\rangle\cdots |x_n\rangle U^{x_1\cdot x_2\cdot \cdots \cdot x_n}|\psi\rangle,
+\end{equation}
+where $x_1\cdot x_2\cdot \cdots \cdot x_n$ in the exponent of $U$ means the product of the bits $x_1, x_2, \ldots, x_n$. That is, the operator $U$ is applied to the last $k$ qubits if the first $n$ qubits are all equal to one, and otherwise, nothing is done. The quantum circuit diagram for this operation may be illustrated, e.g., as for:
+\begin{center}
+  \includegraphics[width=0.3\textwidth]{cnu.jpg}
+\end{center}
+\begin{exercise}[Lengthy]
+  Show how to implement $C^n(U)$ using {\sc toffoli} gates and a single simple controlled-$U$ operation.
+\end{exercise}
+\begin{exercise}
+  What is the matrix representation of a general controlled-$U$ operation, where $U$ is an arbitrary element of $\textsl{SU}(2)$, in the computational basis?
+\end{exercise}
+
+\subsubsection{Universal quantum gates}
+A small set of gates (e.g.\ {\sc and}, {\sc xor} and {\sc not}) can be used to compute an arbitrary classical function. We say that such a set of gates is \emph{universal} for classical computation. Quantum circuits subsume classical circuits. A similar universality result is true for quantum computation, where a set of gates is said to be \emph{universal for quantum computation} if any unitary operation may be approximated to arbitrary accuracy by a quantum circuit involving only those gates. We now describe three universality constructions for quantum computation. This construction shows us that any unitary operation can be approximated to arbitrary accuracy using single-qubit operations, and {\sc cnot} gates. {\bf This is one of the most important results in quantum computation, and justifies the experimental focus on implementing such gates.}
+
+\subsubsection{Two-level unitary gates are universal}
+Consider a unitary matrix $U$ which acts on a $d$-dimensional Hilbert space. Here we will see how $U$ may be decomposed into a product of \emph{two-level} unitary matrices\footnote{``Two-level'' unitaries are distinct from \emph{two-qubit} unitaries (these come later).}, that is, unitary matrices which act non-trivially only on two-or-fewer vector components. The essential idea behind this decomposition may be understood by considering the case when $U$ is $3\times 3$, so suppose that $U$ has the form:
+\begin{equation}
+  U = \begin{pmatrix}
+    a & d & g \\
+    b & e & h \\
+    c & f & j 
+  \end{pmatrix}.
+\end{equation}
+
+\begin{exercise}
+  Find two-level unitary matrices $U_1$, $U_2$, $U_3$, so that
+  \begin{equation}
+    U_3 U_2 U_1 U = \mathbb{I}.
+  \end{equation}
+\end{exercise} 
+
+\begin{exercise}
+  Generalise this construction to write an element of $\textsl{SU}(d)$ as a product of $d(d-1)/2$ two-level unitaries.
+\end{exercise} 
+
+\subsubsection{Single-qubit gates and CNOT are universal}
+We have just shown that an arbitrary unitary matrix on a $d$-dimensional Hilbert space may be written as a product of \emph{two-level} unitary matrices. Now we show that single-qubit and {\sc cnot} gates together can be used to implement an arbitrary two-level unitary operation on the state space of $n$ qubits. Combining these results we see that single qubit and {\sc cnot} gates can be used to implement an arbitrary unitary operation on $n$ qubits, and therefore are universal for quantum computation.
+
+Suppose $U$ is a two-level unitary matrix on an $n$-qubit quantum computer. Suppose, in particular, that $U$ acts non-trivially on the space spanned by the computational basis states $|s_1s_2\cdots s_n\rangle$ and $|t_1t_2\cdots t_n\rangle$. Let $\widetilde{U}$ be the non-trivial $2\times 2$ unitary submatrix of $U$; we now argue that $\widetilde{U}$ can be thought of as a unitary operator on a single qubit.
+
+Our immediate goal is to construct a circuit implementing $U$, built from single-qubit and {\sc cnot} gates. To do this, we need to make use of \emph{Gray codes}. Suppose we have distinct binary numbers, $\textbf{s} \equiv s_1s_2\cdots s_n$ and $\textbf{t} \equiv t_1t_2\cdots t_n$. A Gray code connecting $\textbf{s}$ and $\textbf{t}$ is a sequence of binary numbers, starting with $\textbf{s}$ and concluding with $\textbf{t}$, such that adjacent members of the list differ in exactly one bit. For instance, with $n=3$ qubits, $\textbf{s} = 111$ and $\textbf{t} = 001$, we have the Gray code
+\begin{equation}
+  \begin{matrix}
+    111 \\
+    011 \\
+    001
+  \end{matrix}
+\end{equation}
+
+\begin{exercise}
+   Find a Gray code on $n=6$ bits connecting $\textbf{s} = 101001$ and $\textbf{t}=110011$.
+\end{exercise}
+
+Let $g_1$ through $g_m$ be the elements of a Gray code connecting $\textbf{s}$ and $\textbf{t}$, with $g_1 = \textbf{s}$ and $g_m = \textbf{t}$. Note that we can always find a Gray code such that $m < n+1$ since $\textbf{s}$ and $\textbf{t}$ can differ in at most $n$ locations. 
+
+The basic idea of the quantum circuit implementing $U$ is to perform a sequence of gates effecting the state changes  
+\begin{equation}
+  |g_1\rangle \mapsto |g_2\rangle \mapsto \cdots \mapsto |g_{m-1}\rangle,
+\end{equation}
+then to perform a controlled-$U$ operation, with the target qubit located at the single bit where $g_{m-1}$ and $g_m$ differ, and then to undo the first stage, transforming 
+\begin{equation}
+  |g_{m-1}\rangle \mapsto |g_{m-2}\rangle \mapsto \cdots \mapsto |g_{1}\rangle.
+\end{equation}
+Each of these steps can be easily implemented using operations we’ve developed earlier, and the final result is an implementation of $U$.
+
+A more precise description of the implementation is as follows. The first step is to swap the states $|g_1\rangle$ and $|g_2\rangle$. Suppose $g_1$ and $g_2$ differ at the $j$th digit. Then we accomplish the swap by performing a \emph{controlled bit flip} on the $j$th qubit, conditional on the values of the other qubits being identical to those in both $g_1$ and $g_2$. Next we use a controlled operation to swap $|g_2\rangle$ and $|g_3\rangle$. We continue in this fashion until we swap $|g_{m-2}\rangle$ with $|g_{m-1}\rangle$. The effect of this sequence of $m-2$ operations is to achieve the operation
+\begin{equation}
+  \begin{split}
+    |g_1\rangle & \mapsto |g_{m-1}\rangle \\
+    |g_2\rangle & \mapsto |g_{1}\rangle \\
+    |g_3\rangle & \mapsto |g_{2}\rangle \\
+    &\vdots \\
+    |g_{m-1}\rangle & \mapsto |g_{m-2}\rangle. \\
+  \end{split}
+\end{equation}
+All other computational basis states are left unchanged by this sequence of operations. Next, suppose $g_{m-1}$ and $g_m$ differ in the $j$th bit. We apply a controlled-$\widetilde{U}$ operation with the $j$th qubit as target, conditional on the other qubits having the same values as appear in $g_m$ and $g_{m-1}$. We complete the $U$ operation by undoing all the conditional swaps.
+
+\begin{exercise}
+  Show how to effect the following two-level operation on $n=3$ qubits using controlled unitaries.
+  \begin{equation}
+    U = \begin{pmatrix}
+      a & 0 & 0 & 0 & 0 & 0 & 0 & c \\
+      0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+      0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
+      0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 \\
+      0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+      0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 \\
+      0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+      c & 0 & 0 & 0 & 0 & 0 & 0 & d 
+    \end{pmatrix}.
+  \end{equation}
+  Here $a$, $b$, $c$, and $d$ are complex numbers so that $\widetilde{U}=\left(\begin{smallmatrix} a & b\\ c & d \end{smallmatrix}\right)$ is a unitary matrix. The Gray code 
+  \begin{equation}
+  \begin{matrix}
+    000 \\
+    001 \\
+    011 \\
+    111
+  \end{matrix}
+\end{equation}
+will be helpful.
+\end{exercise} 
+
+By combining all of the results discussed here we learn that an arbitrary unitary operation on $n$ qubits can be implmented using a circuit containing $O(n^2 4^n)$ single-qubit and {\sc cnot} gates. 
+\end{document}

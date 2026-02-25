@@ -1,0 +1,46 @@
+This is BibTeX, Version 0.99d (TeX Live 2023/Debian)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: QuantumComputing.aux
+The style file: amsalpha.bst
+Database file #1: references.bib
+You've used 12 entries,
+            2624 wiz_defined-function locations,
+            645 strings with 6269 characters,
+and the built_in function-call counts, 4710 in all, are:
+= -- 443
+> -- 207
+< -- 5
++ -- 70
+- -- 68
+* -- 417
+:= -- 771
+add.period$ -- 12
+call.type$ -- 12
+change.case$ -- 73
+chr.to.int$ -- 12
+cite$ -- 12
+duplicate$ -- 173
+empty$ -- 366
+format.name$ -- 84
+if$ -- 931
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 24
+newline$ -- 47
+num.names$ -- 36
+pop$ -- 77
+preamble$ -- 1
+purify$ -- 85
+quote$ -- 0
+skip$ -- 119
+stack$ -- 0
+substring$ -- 349
+swap$ -- 12
+text.length$ -- 5
+text.prefix$ -- 5
+top$ -- 0
+type$ -- 96
+warning$ -- 0
+while$ -- 51
+width$ -- 15
+write$ -- 131

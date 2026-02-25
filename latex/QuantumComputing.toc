@@ -1,0 +1,28 @@
+\contentsline {section}{\tocsection {}{1}{Quantum gate operations and the circuit model}}{1}{section.1}%
+\contentsline {subsection}{\tocsubsection {}{1.1}{Classical computation}}{1}{subsection.1.1}%
+\contentsline {subsubsection}{\tocsubsubsection {}{1.1.1}{Boolean circuits}}{1}{subsubsection.1.1.1}%
+\contentsline {subsubsection}{\tocsubsubsection {}{1.1.2}{Universality of classical gates}}{2}{subsubsection.1.1.2}%
+\contentsline {subsection}{\tocsubsection {}{1.2}{The quantum circuit model}}{3}{subsection.1.2}%
+\contentsline {subsubsection}{\tocsubsubsection {}{1.2.1}{Single-qubit operations}}{3}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\tocsubsubsection {}{1.2.2}{Controlled operations}}{4}{subsubsection.1.2.2}%
+\contentsline {subsubsection}{\tocsubsubsection {}{1.2.3}{Universal quantum gates}}{5}{subsubsection.1.2.3}%
+\contentsline {paragraph}{\tocparagraph {}{}{Step 1: Two-level unitary gates are universal.}}{5}{section*.2}%
+\contentsline {paragraph}{\tocparagraph {}{}{Step 2: Two-level unitaries from single-qubit and $\textsc {cnot}$ gates.}}{5}{section*.3}%
+\contentsline {section}{\tocsection {}{2}{Quantum algorithms}}{6}{section.2}%
+\contentsline {subsection}{\tocsubsection {}{2.1}{Overview}}{6}{subsection.2.1}%
+\contentsline {subsection}{\tocsubsection {}{2.2}{The query model}}{6}{subsection.2.2}%
+\contentsline {subsection}{\tocsubsection {}{2.3}{The Deutsch-Jozsa algorithm}}{7}{Item.10}%
+\contentsline {subsection}{\tocsubsection {}{2.4}{Grover's search algorithm}}{8}{subsection.2.4}%
+\contentsline {subsubsection}{\tocsubsubsection {}{2.4.1}{The search problem}}{8}{subsubsection.2.4.1}%
+\contentsline {subsubsection}{\tocsubsubsection {}{2.4.2}{The Grover iterate}}{8}{subsubsection.2.4.2}%
+\contentsline {subsubsection}{\tocsubsubsection {}{2.4.3}{Geometric analysis}}{9}{subsubsection.2.4.3}%
+\contentsline {subsubsection}{\tocsubsubsection {}{2.4.4}{Variants and extensions of Grover's algorithm}}{10}{subsubsection.2.4.4}%
+\contentsline {section}{\tocsection {}{3}{Trotterization and quantum simulation}}{10}{section.3}%
+\contentsline {subsection}{\tocsubsection {}{3.1}{Why simulate quantum systems?}}{10}{subsection.3.1}%
+\contentsline {subsection}{\tocsubsection {}{3.2}{Many-body quantum systems}}{11}{subsection.3.2}%
+\contentsline {subsection}{\tocsubsection {}{3.3}{The quantum simulation algorithm}}{11}{subsection.3.3}%
+\contentsline {subsubsection}{\tocsubsubsection {}{3.3.1}{The Lie-Trotter formula}}{12}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\tocsubsubsection {}{3.3.2}{The quantum simulation algorithm}}{13}{Item.25}%
+\contentsline {subsection}{\tocsubsection {}{3.4}{Higher-order product formulas}}{13}{subsection.3.4}%
+\contentsline {subsection}{\tocsubsection {}{3.5}{Advanced techniques and further reading}}{13}{subsection.3.5}%
+\contentsline {section}{\tocsection {}{}{References}}{14}{section*.4}%

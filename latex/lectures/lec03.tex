@@ -1,0 +1,282 @@
+% !TEX root = ../QuantumComputing.tex
+%% Lecture 3: Quantum Simulation
+%% Based on original notes by T.J. Osborne, enriched and unified
+
+\section{Trotterization and quantum simulation}\label{sec:simulation}
+
+\begin{historical}[From Feynman's vision to practical simulators]
+  In 1982, Richard Feynman~\cite{Feynman1982} asked whether quantum systems
+  could be efficiently simulated on classical computers, and conjectured that
+  the answer was no---but that a \emph{quantum} computer could do the job.
+  Seth Lloyd~\cite{Lloyd1996} proved Feynman right in 1996, showing that
+  local Hamiltonians can be efficiently simulated on a quantum computer via
+  the Lie-Trotter product formula.  Quantum simulation remains one of the
+  most promising near-term applications of quantum computers, with potential
+  impact on quantum chemistry, materials science, and high-energy physics.
+\end{historical}
+
+\subsection{Why simulate quantum systems?}\label{subsec:why-simulate}
+
+Complex quantum systems have numerous industrially significant applications,
+from molecular structure for quantum chemistry through to materials design.
+Despite their importance, progress on understanding the physics of such
+systems faces continuing challenges.
+
+The direct simulation of quantum systems by classical computers is possible
+in principle but generically \emph{inefficient}.  Consider the Schrödinger
+equation for a many-body quantum system:
+\begin{equation}\label{eq:schrodinger}
+  \eqbox{i\frac{d}{dt}\ket{\psi} = H \ket{\psi}.}
+\end{equation}
+If one writes this equation in terms of a basis for Hilbert space, one
+obtains a system of coupled linear ODEs.  Such systems are straightforward
+to solve numerically.  So what is the difficulty?
+
+\begin{intuition}[The exponential wall]
+  The key challenge is the \emph{exponential} number of differential
+  equations that must be solved.  For one qubit, $2$ equations; for two
+  qubits, $4$; and for $n$ qubits, $2^n$ equations.  For a system of just
+  $300$ qubits, there are more equations than atoms in the observable
+  universe ($2^{300} \approx 10^{90}$).  Sometimes insightful approximations
+  reduce the effective number of equations (e.g., tensor network methods for
+  low-entanglement states), but for many physically interesting systems no
+  such shortcuts are known.  This is one of the strongest motivations for
+  building quantum computers.
+\end{intuition}
+
+\subsection{Many-body quantum systems}\label{subsec:many-body}
+
+A many-body quantum system is comprised of many quantum degrees of freedom.
+We model our system as a collection of $n$ qubits (assuming distinguishable
+particles for simplicity) with Hilbert space
+\begin{equation}
+  \hilb \equiv (\C^2)^{\tp n}.
+\end{equation}
+
+\begin{definition}[Local Hamiltonian]\label{def:local-hamiltonian}
+  A Hamiltonian $H$ acting on $n$ qubits is called \emph{$c$-local} if it
+  can be written as
+  \begin{equation}
+    H = \sum_{j=1}^L h_j,
+  \end{equation}
+  where each operator $h_j$ acts nontrivially on at most $c$ qubits (for
+  some constant $c$ independent of $n$).  The number $L$ of terms can be
+  any polynomial in $n$.
+\end{definition}
+
+\begin{example}[Transverse-field Ising model]
+  The transverse-field Ising model on a chain of $n$ qubits is
+  \begin{equation}
+    H = \sum_{j=1}^{n-1} \paulix_j\paulix_{j+1}
+    + \lambda \sum_{j=1}^n \pauliz_j,
+  \end{equation}
+  where $\lambda\in\R$ is the transverse field strength.  This is a
+  $2$-local Hamiltonian with $L = 2n-1$ terms.  It models magnetic phase
+  transitions and is one of the simplest exactly-solvable interacting
+  quantum systems.
+\end{example}
+
+\begin{remark}
+  The restriction to constant locality $c$ implies that $L$ is bounded
+  by a polynomial in $n$.  Indeed, there are at most $\binom{n}{c} = \bigO{n^c}$
+  subsets of size $c$, so $L \le \binom{n}{c}$, which is polynomial for
+  fixed~$c$.
+\end{remark}
+
+
+\subsection{The quantum simulation algorithm}\label{subsec:sim-algorithm}
+
+The goal of quantum simulation is, for a given time $t$, to prepare the
+state
+\begin{equation}
+  \ket{\psi(t)} = e^{-iHt}\ket{\psi(0)},
+\end{equation}
+corresponding to the solution of the Schrödinger equation~\eqref{eq:schrodinger}.
+The objective is to implement the unitary $U(t) \equiv e^{-iHt}$ with quantum gates.
+
+If we na\"ively applied the universality theorem from Section~\ref{sec:circuits},
+we would need roughly $2^{2^n}$ elementary gates---and even computing
+a single matrix element of $U(t)$ requires solving the Schrödinger equation
+in the first place.  We need a fundamentally different strategy.
+
+\begin{intuition}[The key insight]
+  Although $e^{-iHt}$ is hard to implement directly, each factor
+  $e^{-ih_j t}$ acts on a small subsystem (at most $c$ qubits) and is
+  therefore straightforward to compile into a quantum circuit using $\bigO{1}$
+  gates.  The challenge is that in general $\comm{h_j}{h_k}\neq 0$, so
+  $e^{-iHt} \neq \prod_{j=1}^L e^{-ih_j t}$.  The Lie-Trotter formula
+  provides a systematic way to overcome this obstacle.
+\end{intuition}
+
+\begin{proposition}\label{prop:commuting-case}
+  If $\comm{h_j}{h_k}= 0$ for all $j,k$, then
+  \begin{equation}
+    U(t) = e^{-iHt} = \prod_{j=1}^L e^{-ih_jt}
+  \end{equation}
+  for all $t$.
+\end{proposition}
+\begin{proof}
+  When all terms commute, the exponential of a sum equals the product of
+  exponentials.  This follows from the Baker-Campbell-Hausdorff formula,
+  which states $e^A e^B = e^{A+B+\frac{1}{2}\comm{A}{B}+\cdots}$;
+  all correction terms vanish when $\comm{A}{B}=0$.
+\end{proof}
+
+\subsubsection{The Lie-Trotter formula}
+
+\begin{theorem}[Lie-Trotter formula]\label{thm:lie-trotter}
+  Let $A$ and $B$ be Hermitian operators.  Then for any real $t$,
+  \begin{equation}
+    \eqbox{\lim_{n\rightarrow \infty}
+    \left(e^{iA\frac{t}{n}}e^{iB\frac{t}{n}}\right)^{n}
+    = e^{i(A+B)t}.}
+  \end{equation}
+\end{theorem}
+
+\begin{proof}
+  By the Taylor theorem with remainder,
+  \begin{equation}
+    e^{iA\frac{t}{n}} = \I + \frac{1}{n} iAt
+    + \bigO{\frac{|t|^2\norm{A}^2}{n^2}},
+  \end{equation}
+  so that
+  \begin{equation}
+    e^{iA\frac{t}{n}}e^{iB\frac{t}{n}} = \I + \frac{1}{n} i(A+B)t
+    + \bigO{\frac{|t|^2(\norm{A}+\norm{B})^2}{n^2}}.
+  \end{equation}
+  Taking the $n$th power, using
+  $\frac{1}{n^k}\binom{n}{k} = \frac{1}{k!}\left(1+\bigO{\frac{1}{n}}\right)$,
+  we obtain
+  \begin{equation}
+    \lim_{n\rightarrow \infty}
+    \left(e^{iA\frac{t}{n}}e^{iB\frac{t}{n}}\right)^{n}
+    = \sum_{k=0}^\infty \frac{(it)^k}{k!}(A+B)^k = e^{i(A+B)t}.
+    \qedhere
+  \end{equation}
+\end{proof}
+
+By inductively applying the Lie-Trotter formula, one demonstrates that for
+$n$ large enough,
+\begin{equation}
+  U(t) = e^{-it\sum_{j=1}^L h_j}
+  \approx \left(e^{-i h_1\frac{t}{n}}e^{-i h_2\frac{t}{n}}
+  \cdots e^{-i h_L\frac{t}{n}}\right)^{n}.
+\end{equation}
+Notice that this is now a product of \emph{local} unitary operators, each
+computable with $\bigO{1}$ gates.
+
+\begin{keyresult}[First-order Trotter error bound]
+  The first-order Trotter approximation satisfies
+  \begin{equation}
+    \norm{e^{-iHt} - \left(\prod_{j=1}^L e^{-ih_j t/n}\right)^n}
+    \le \frac{t^2}{2n}\sum_{j<k}\norm{\comm{h_j}{h_k}}.
+  \end{equation}
+  To achieve accuracy $\epsilon$, one needs
+  $n = \bigO{t^2 L^2 \norm{h}^2/\epsilon}$ Trotter steps, giving a total
+  gate count of $\bigO{t^2 L^3 \norm{h}^2/\epsilon}$.
+\end{keyresult}
+
+\subsubsection{The quantum simulation algorithm}
+
+\begin{algorithmbox}[Quantum simulation via Trotterization]
+  \begin{itemize}
+    \item \textbf{Input}: (1) A Hamiltonian $H = \sum_{j=1}^L h_j$ acting
+      on $n$ qubits, where each $h_j$ acts on a constant-size subsystem;
+      (2) an initial state $\ket{\psi_0}$; (3) a target accuracy $\delta>0$;
+      and (4) a final time $t_f$.
+    \item \textbf{Output}: A state $\ket{\widetilde{\psi}(t_f)}$ such that
+      $|\braket{\widetilde{\psi}(t_f)}{e^{-iHt_f}\psi_0}|^2 \ge 1-\delta$.
+    \item \textbf{Runtime}: $\bigO{\poly{1/\delta}}$ operations.
+    \item \textbf{Procedure}: Define the Trotter step
+      $U_{\Delta t} \equiv e^{-i h_1\Delta t}e^{-i h_2\Delta t}
+      \cdots e^{-i h_L\Delta t}$ and choose $\Delta t$ for acceptable error:
+      \begin{enumerate}
+        \item Initialise: $\ket{\psi_0}$; set $j=0$.
+        \item Update: $\ket{\widetilde{\psi}_{j+1}}
+          = U_{\Delta t}\ket{\widetilde{\psi}_{j}}$.
+        \item Loop: $j \leftarrow j+1$; repeat step~2 until
+          $j\cdot\Delta t \ge t_f$.
+        \item Output: $\ket{\widetilde{\psi}(t_f)}
+          =\ket{\widetilde{\psi}_{j}}$.
+      \end{enumerate}
+  \end{itemize}
+\end{algorithmbox}
+
+\begin{intuition}[Trotterization as time-slicing]
+  Trotterization is analogous to the operator-splitting methods used in
+  classical numerical analysis.  By dividing the total evolution time into
+  many small steps $\Delta t$, the error from non-commutativity is controlled:
+  during each small step, the terms ``almost commute'' because their
+  commutator is multiplied by $\Delta t^2$.  The total circuit looks like:
+
+  \begin{center}
+  \begin{tikzpicture}[scale=0.8]
+    % Time axis
+    \draw[->,spacecadet,thick] (0,0) -- (14,0) node[right,font=\small] {$t$};
+    % Time slices
+    \foreach \i in {0,...,6} {
+      \draw[spacecadet] ({2*\i},0.15) -- ({2*\i},-0.15);
+    }
+    \node[below,font=\scriptsize] at (0,-0.15) {$0$};
+    \node[below,font=\scriptsize] at (2,-0.15) {$\Delta t$};
+    \node[below,font=\scriptsize] at (4,-0.15) {$2\Delta t$};
+    \node[below,font=\scriptsize] at (12,-0.15) {$t_f$};
+    \node at (8,-0.15) {$\cdots$};
+    % Trotter steps
+    \foreach \i in {0,...,2} {
+      \node[above,font=\scriptsize,cgblue] at ({2*\i+1},0.2) {$U_{\Delta t}$};
+    }
+    \foreach \i in {5} {
+      \node[above,font=\scriptsize,cgblue] at ({2*\i+1},0.2) {$U_{\Delta t}$};
+    }
+  \end{tikzpicture}
+  \end{center}
+\end{intuition}
+
+
+\subsection{Higher-order product formulas}\label{subsec:higher-order}
+
+The first-order Trotter formula can be improved.  The \emph{second-order
+  Suzuki-Trotter} formula uses
+\begin{equation}
+  S_2(\Delta t) = e^{-ih_1 \Delta t/2}e^{-ih_2 \Delta t/2}\cdots
+  e^{-ih_L \Delta t}\cdots e^{-ih_2 \Delta t/2}e^{-ih_1 \Delta t/2},
+\end{equation}
+which achieves error $\bigO{\Delta t^3}$ per step (compared to
+$\bigO{\Delta t^2}$ for first order), giving a total error of
+$\bigO{t^3/n^2}$ after $n$ steps.  Even higher-order formulas can be
+constructed recursively~\cite{ChildsTrotterError2021}.
+
+
+\subsection{Advanced techniques and further reading}\label{subsec:advanced}
+
+With the deployment of near-term quantum devices, new possibilities for
+quantum simulation have emerged.  Beyond Lie-Trotter expansions, the major
+modern approaches include:
+
+\begin{itemize}
+  \item \textbf{Quantum signal processing and quantum singular value
+      transform (QSVT)}~\cite{QSVT2019}: A unifying framework that achieves
+    near-optimal Hamiltonian simulation and encompasses many quantum
+    algorithms as special cases.
+
+  \item \textbf{Qubitization}~\cite{LowChuang2019}: A quantum walk-based
+    method that achieves optimal scaling in all parameters simultaneously.
+
+  \item \textbf{Linear combination of unitaries
+      (LCU)}~\cite{ChildsLCU2012}: Expresses $e^{-iHt}$ as a linear
+    combination of easily-implementable unitaries, using an ancilla register
+    and amplitude amplification.
+
+  \item \textbf{Randomised methods (qDRIFT)}~\cite{Campbell2019}: Randomly
+    samples terms from the Hamiltonian at each step, achieving gate
+    complexity independent of the number of terms~$L$.
+\end{itemize}
+
+\begin{remark}
+  The optimal query complexity for Hamiltonian simulation is
+  $\Theta(t\norm{H} + \log(1/\epsilon)/\log\log(1/\epsilon))$, achieved by
+  QSVT-based methods.  The Trotter approach, while not optimal, remains
+  practically competitive due to its simplicity and favourable constant
+  factors.
+\end{remark}

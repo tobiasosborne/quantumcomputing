@@ -1,0 +1,68 @@
+\newcommand{\etalchar}[1]{$^{#1}$}
+\providecommand{\bysame}{\leavevmode\hbox to3em{\hrulefill}\thinspace}
+\providecommand{\MR}{\relax\ifhmode\unskip\space\fi MR }
+% \MRhref is called by the amsart/book/proc definition of \MR.
+\providecommand{\MRhref}[2]{%
+  \href{http://www.ams.org/mathscinet-getitem?mr=#1}{#2}
+}
+\providecommand{\href}[2]{#2}
+\begin{thebibliography}{GSLW19}
+
+\bibitem[Cam19]{Campbell2019}
+Earl Campbell, \emph{Random compiler for fast {H}amiltonian simulation},
+  Physical Review Letters \textbf{123} (2019), 070503.
+
+\bibitem[CST{\etalchar{+}}21]{ChildsTrotterError2021}
+Andrew~M. Childs, Yuan Su, Minh~C. Tran, Nathan Wiebe, and Shuchen Zhu,
+  \emph{Theory of {T}rotter error with commutator scaling}, Physical Review X
+  \textbf{11} (2021), 011020.
+
+\bibitem[CW12]{ChildsLCU2012}
+Andrew~M. Childs and Nathan Wiebe, \emph{Hamiltonian simulation using linear
+  combinations of unitary operations}, Quantum Information \& Computation
+  \textbf{12} (2012), 901--924.
+
+\bibitem[DJ92]{DeutschJozsa1992}
+David Deutsch and Richard Jozsa, \emph{Rapid solution of problems by quantum
+  computation}, Proceedings of the Royal Society of London A \textbf{439}
+  (1992), 553--558.
+
+\bibitem[DN06]{SolovayKitaev2006}
+Christopher~M. Dawson and Michael~A. Nielsen, \emph{The {S}olovay-{K}itaev
+  algorithm}, Quantum Information \& Computation \textbf{6} (2006), 81--95,
+  \href{https://arxiv.org/abs/quant-ph/0505030}{arXiv:quant-ph/0505030}.
+
+\bibitem[Fey82]{Feynman1982}
+Richard~P. Feynman, \emph{Simulating physics with computers}, International
+  Journal of Theoretical Physics \textbf{21} (1982), 467--488.
+
+\bibitem[Gro96]{Grover1996}
+Lov~K. Grover, \emph{A fast quantum mechanical algorithm for database search},
+  Proceedings of the 28th Annual ACM Symposium on Theory of Computing (1996),
+  212--219.
+
+\bibitem[GSLW19]{QSVT2019}
+Andr\'as Gily\'en, Yuan Su, Guang~Hao Low, and Nathan Wiebe, \emph{Quantum
+  singular value transformation and beyond: Exponential improvements for
+  quantum matrix arithmetics}, Proceedings of the 51st Annual ACM STOC (2019),
+  193--204.
+
+\bibitem[HHL09]{HHL2009}
+Aram~W. Harrow, Avinatan Hassidim, and Seth Lloyd, \emph{Quantum algorithm for
+  linear systems of equations}, Physical Review Letters \textbf{103} (2009),
+  150502.
+
+\bibitem[LC19]{LowChuang2019}
+Guang~Hao Low and Isaac~L. Chuang, \emph{Hamiltonian simulation by
+  qubitization}, Quantum \textbf{3} (2019), 163.
+
+\bibitem[Llo96]{Lloyd1996}
+Seth Lloyd, \emph{Universal quantum simulators}, Science \textbf{273} (1996),
+  1073--1078.
+
+\bibitem[Sho94]{Shor1994}
+Peter~W. Shor, \emph{Algorithms for quantum computation: Discrete logarithms
+  and factoring}, Proceedings of the 35th Annual Symposium on Foundations of
+  Computer Science (1994), 124--134.
+
+\end{thebibliography}

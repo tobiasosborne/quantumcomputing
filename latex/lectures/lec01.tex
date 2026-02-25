@@ -1,0 +1,382 @@
+% !TEX root = ../QuantumComputing.tex
+%% Lecture 1: Quantum Circuits and the Circuit Model
+%% Based on original notes by T.J. Osborne, enriched and unified
+
+\section{Quantum gate operations and the circuit model}\label{sec:circuits}
+
+\begin{historical}[From classical to quantum computation]
+The idea that quantum mechanics could be harnessed for computation was first
+proposed by Richard Feynman in 1982~\cite{Feynman1982}, who observed that
+simulating quantum systems on classical computers appears to require
+exponential resources.  David Deutsch formalised the notion of a quantum
+Turing machine in 1985, and the quantum circuit model emerged as the standard
+framework for designing quantum algorithms. Today, the circuit model
+underpins essentially all practical quantum computing architectures, from
+superconducting qubits to trapped ions.
+\end{historical}
+
+\subsection{Classical computation}\label{subsec:classical}
+
+\subsubsection{Boolean circuits}
+
+We begin with the theoretical model underlying classical computation.
+
+A \emph{boolean circuit} is made up of \emph{wires} and \emph{gates} which
+carry information around and perform simple computational tasks,
+respectively.  These are theoretical abstractions and may, or may not, be
+directly identifiable with actual wires and gates (made from transistors).
+
+\begin{center}
+\begin{tikzpicture}
+  % NOT gate circuit diagram
+  \draw[qwire] (0,0) -- (1.5,0);
+  \node[gate] at (2,0) {$\NOT$};
+  \draw[qwire] (2.5,0) -- (4,0);
+  \node[anchor=east,font=\small] at (0,0) {$a$};
+  \node[anchor=west,font=\small] at (4,0) {$\overline{a}$};
+\end{tikzpicture}
+\end{center}
+This example shows a simple circuit which takes as input a single bit, $a$.
+This bit is passed through a $\NOT$ gate, which flips the bit, taking $1$ to $0$
+and $0$ to $1$. The wires before and after the $\NOT$ gate serve merely to
+carry the bit to and from the gate; they represent movement of the bit
+through space, or perhaps just through time.
+
+More generally, a \emph{circuit} may involve many input and output bits, many
+wires, and many logical gates. A \emph{logic gate} is a \emph{boolean
+  function}
+\begin{equation}
+  \eqbox{f:\{0,1\}^{\times k} \rightarrow \{0,1\}^{\times l}}
+\end{equation}
+from some fixed number $k$ of input bits to some fixed number $l$ of output
+bits.  For example, the $\NOT$ gate is a gate with one input bit and one
+output bit which computes the function $f(a) = 1\oplus a \equiv \overline{a}$,
+where $a$ is a single bit, and $\oplus$ is modulo~$2$ addition.  It is also
+usual to make the convention that no loops are allowed in the circuit, to
+avoid possible instabilities. We say such a circuit is \emph{acyclic} and we
+adhere to the convention that circuits in the circuit model of computation be
+acyclic.
+
+There are many other elementary logic gates which are useful for computation.
+A partial list includes the $\AND$ gate, the $\OR$ gate, the $\XOR$ gate,
+the $\NAND$ gate, and the $\NOR$ gate.  Each of these gates takes two bits
+as input, and produces a single bit as output:
+
+\begin{definition}[Standard logic gates]\label{def:logic-gates}
+  The standard two-input, one-output logic gates are defined by their truth
+  tables:
+  \begin{center}
+    \begin{tabular}{cc|ccccc}
+      \toprule
+      $a$ & $b$ & $\AND$ & $\OR$ & $\XOR$ & $\NAND$ & $\NOR$ \\
+      \midrule
+      0 & 0 & 0 & 0 & 0 & 1 & 1 \\
+      0 & 1 & 0 & 1 & 1 & 1 & 0 \\
+      1 & 0 & 0 & 1 & 1 & 1 & 0 \\
+      1 & 1 & 1 & 1 & 0 & 0 & 0 \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{definition}
+
+There are two important ``gates'' missing from this table, namely the
+$\textsc{fanout}$ gate and the $\textsc{crossover}$ gate: In circuits we
+often allow bits to ``divide'', replacing a bit with two copies of itself, an
+operation referred to as $\textsc{fanout}$.  We also allow bits to
+$\textsc{crossover}$, that is, the value of two bits are interchanged. A
+third operation missing, not really a logic gate at all, is to allow the
+preparation of extra \emph{ancilla} or \emph{work bits}, to allow extra
+working space during the computation.
+
+\subsubsection{Universality of classical gates}
+
+Just a few fixed gates can be used to compute any function
+$f:\{0,1\}^{\times n} \rightarrow \{0,1\}^{\times m}$ whatsoever.  One can
+prove this for the simplified case of a function
+$f:\{0,1\}^{\times n} \rightarrow \{0,1\}$ with $n$ input bits and a single
+output bit.  The general universality proof follows immediately from this
+special case.
+
+\begin{theorem}[Universality of $\AND$, $\XOR$, $\NOT$]\label{thm:classical-universality}
+  The gate set $\{\AND, \XOR, \NOT\}$, together with wires, ancilla bits,
+  $\textsc{fanout}$, and $\textsc{crossover}$, is universal for classical
+  computation. That is, any boolean function
+  $f:\{0,1\}^{\times n}\to\{0,1\}$ can be computed by a circuit built from
+  these elements.
+\end{theorem}
+
+\begin{intuition}[Why a small gate set suffices]
+  The proof proceeds by induction on $n$.  For $n=1$ there are only four
+  boolean functions $\{0,1\}\to\{0,1\}$, each implementable directly. For
+  the inductive step, any $(n+1)$-bit function $f$ can be decomposed as
+  \[
+    f(x_0, x_1,\ldots,x_n) =
+    \overline{x_0}\cdot f_0(x_1,\ldots,x_n)
+    \;\oplus\;
+    x_0 \cdot f_1(x_1,\ldots,x_n),
+  \]
+  where $f_0$ and $f_1$ are the restrictions to $x_0=0$ and $x_0=1$
+  respectively. By induction, both $f_0$ and $f_1$ have circuits, and
+  combining them with a multiplexer built from $\AND$, $\XOR$, and $\NOT$
+  completes the construction.
+\end{intuition}
+
+\begin{remark}
+  The $\NAND$ gate alone is universal: it can simulate $\NOT$ (by feeding the same input to both ports), $\AND$ (by applying $\NOT$ to the output of $\NAND$), and $\XOR$ (via a standard construction).
+\end{remark}
+
+
+\subsection{The quantum circuit model}\label{subsec:qcircuit-model}
+
+For us the term \emph{quantum computer} is synonymous with the \emph{quantum
+  circuit model} of computation.  The key elements of the quantum circuit
+model are:
+
+\begin{keyresult}[Elements of the quantum circuit model]
+  \begin{enumerate}
+    \item \textbf{Classical resources}: a quantum computer consists of a
+      \emph{classical} part and a \emph{quantum} part.  In practice, certain
+      tasks may be made much easier if parts of the computation can be done
+      classically.
+    \item \textbf{A suitable state space}: a quantum circuit operates on $n$
+      qubits.  The state space is the $2^n$-dimensional complex Hilbert
+      space $(\C^2)^{\tp n}$.  Product states of the form
+      $\ket{x_1}\ket{x_2}\cdots \ket{x_n}$, where $x_j \in \{0,1\}$, are
+      known as \emph{computational basis states}.
+    \item \textbf{Ability to prepare states in the computational basis}: any
+      computational basis state
+      $\ket{x_1}\ket{x_2}\cdots \ket{x_n}$ can be prepared in at most $n$
+      steps.
+    \item \textbf{Ability to perform quantum gates}: unitary operations
+      called \emph{quantum gates} can be applied to any subset of the qubits
+      as desired, and a \emph{universal family} of gates can be implemented.
+    \item \textbf{Ability to perform measurements in the computational
+        basis}: measurements may be performed in the computational basis of
+      one or more of the qubits.
+  \end{enumerate}
+\end{keyresult}
+
+\subsubsection{Single-qubit operations}\label{subsubsec:single-qubit}
+
+Any $2\times 2$ unitary operator is called a \emph{single-qubit operation}.
+While there is an uncountable infinity of such operations, quantum circuits
+often comprise one of a handful of specific gates.  The most important
+single-qubit gates are the \emph{Pauli gates} and the \emph{Hadamard gate}:
+
+\begin{definition}[Pauli gates and Hadamard]\label{def:pauli-hadamard}
+  The Pauli gates are
+  \[
+    X = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix},\quad
+    Y = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix},\quad
+    Z = \begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}.
+  \]
+  The Hadamard gate is
+  \[
+    H = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}.
+  \]
+  The phase gates $S$ and $T$ are
+  \[
+    S = \begin{pmatrix} 1 & 0 \\ 0 & i \end{pmatrix},\quad
+    T = \begin{pmatrix} 1 & 0 \\ 0 & e^{i\pi/4} \end{pmatrix}.
+  \]
+\end{definition}
+
+These gates can be visualised via \emph{quantum circuit diagrams}:
+\begin{center}
+\begin{tikzpicture}
+  % Wire
+  \draw[qwire] (0,0) -- (2,0);
+  \node[gate] at (1,0) {$U$};
+  \node[anchor=east,font=\small] at (0,0) {$\ket{\psi}$};
+  \node[anchor=west,font=\small] at (2,0) {$U\ket{\psi}$};
+  %
+  \begin{scope}[xshift=4cm]
+    \draw[qwire] (0,0) -- (5,0);
+    \node[gate] at (1,0) {$H$};
+    \node[gate] at (2.5,0) {$T$};
+    \node[gate] at (4,0) {$S$};
+    \node[anchor=east,font=\small] at (0,0) {$\ket{\psi}$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+\begin{intuition}[The Bloch sphere]
+  Any single-qubit pure state $\ket{\psi}=\alpha\ket{0}+\beta\ket{1}$ (with
+  $|\alpha|^2+|\beta|^2=1$) can be parameterised as
+  $\ket{\psi}=\cos(\theta/2)\ket{0}+e^{i\varphi}\sin(\theta/2)\ket{1}$,
+  mapping states to points on the unit sphere in $\R^3$: the \emph{Bloch
+    sphere}.  The north pole is $\ket{0}$, the south pole is $\ket{1}$, and
+  the equator contains states like $\ket{+}$ and $\ket{-}$.  Single-qubit
+  unitaries correspond to rotations of this sphere.
+
+  \begin{center}
+    \begin{tikzpicture}
+      \blochsphere
+      % Example state vector
+      \draw[-{Stealth[length=6pt,width=4pt]},cgblue,thick]
+        (0,0) -- (0.8,1.1) node[above right,font=\small] {$\ket{\psi}$};
+      \draw[dashed,spacecadet!50] (0,0) -- (0.8,0);
+      \draw[dashed,spacecadet!50] (0.8,0) -- (0.8,1.1);
+    \end{tikzpicture}
+  \end{center}
+\end{intuition}
+
+It turns out that any $\SU{2}$ operator can be approximated by a product of
+a finite number of gates from a suitable generating set; this is the content
+of the \emph{Solovay-Kitaev theorem}~\cite{SolovayKitaev2006}.
+
+\begin{theorem}[Solovay-Kitaev~\cite{SolovayKitaev2006}]\label{thm:SK}
+  If a set of single-qubit quantum gates generates a dense subset of $\SU{2}$,
+  then any element of $\SU{2}$ can be approximated to accuracy $\epsilon$
+  using a sequence of $\bigO{\log^c(1/\epsilon)}$ gates from the generating
+  set, where $c\approx 3.97$.
+\end{theorem}
+
+\subsubsection{Controlled operations}\label{subsubsec:controlled}
+
+``If $A$ is true, then do $B$'' is one of the most useful operations in
+computing, both classical and quantum.
+
+The prototypical controlled operation is the controlled-$\NOT$ ($\CNOT$).
+This gate has two input qubits: the \emph{control qubit} and the
+\emph{target} qubit.  Its quantum circuit diagram is
+\begin{center}
+\begin{tikzpicture}
+  % CNOT circuit
+  \qcwires{2}{0}{4}
+  \qcctrl{2}{1}
+  \qccnottarg{2}{2}
+  \qcctrlline{2}{1}{2}
+  \qclabel{1}{\ket{c}}
+  \qclabel{2}{\ket{t}}
+  \node[anchor=west,font=\small] at (4,-1) {$\ket{c}$};
+  \node[anchor=west,font=\small] at (4,-2) {$\ket{t\oplus c}$};
+\end{tikzpicture}
+\end{center}
+In the computational basis the action of the $\CNOT$ is given by
+$\ket{c}\ket{t}\mapsto \ket{c}\ket{t\oplus c}$; that is, if the control
+qubit is set to $\ket{1}$ then the target qubit is flipped, otherwise the
+target qubit is left alone.  The matrix representation of $\CNOT$ is:
+\begin{equation}
+  \CNOT \equiv \begin{pmatrix}
+    1 & 0 & 0 & 0  \\
+    0 & 1 & 0 & 0  \\
+    0 & 0 & 0 & 1  \\
+    0 & 0 & 1 & 0  \\
+  \end{pmatrix}.
+\end{equation}
+
+\begin{intuition}[The $\CNOT$ creates entanglement]
+  When applied to the state $\ket{+}\ket{0} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})\ket{0}$,
+  the $\CNOT$ produces the \emph{Bell state}
+  $\frac{1}{\sqrt{2}}(\ket{00}+\ket{11})$, one of the maximally entangled
+  two-qubit states.  This illustrates the key difference from classical
+  computation: quantum gates can generate entanglement, which is the
+  essential resource for quantum speedups.
+\end{intuition}
+
+Now that we know how to condition on a single qubit, what about conditioning
+on multiple qubits?  An example of multiple-qubit conditioning is the
+\emph{Toffoli gate}, which flips the third qubit conditioned on the first
+two qubits both being set to one:
+\begin{center}
+\begin{tikzpicture}
+  % Toffoli gate
+  \qcwires{3}{0}{4}
+  \qcctrl{2}{1}
+  \qcctrl{2}{2}
+  \qccnottarg{2}{3}
+  \qcctrlline{2}{1}{3}
+  \qclabel{1}{\ket{a}}
+  \qclabel{2}{\ket{b}}
+  \qclabel{3}{\ket{c}}
+  \node[anchor=west,font=\small] at (4,-1) {$\ket{a}$};
+  \node[anchor=west,font=\small] at (4,-2) {$\ket{b}$};
+  \node[anchor=west,font=\small] at (4,-3) {$\ket{c\oplus ab}$};
+\end{tikzpicture}
+\end{center}
+
+More generally, suppose we have $n + k$ qubits and $U$ is a $k$-qubit
+unitary operator.  Then we define the \emph{controlled operation}
+$\CnU{n}{U}$ by
+\begin{equation}
+  \CnU{n}{U}\ket{x_1}\ket{x_2}\cdots \ket{x_n}\ket{\psi}
+  = \ket{x_1}\ket{x_2}\cdots \ket{x_n}\, U^{x_1\cdot x_2\cdot \cdots \cdot x_n}\ket{\psi},
+\end{equation}
+where the product $x_1\cdot x_2\cdot \cdots \cdot x_n$ in the exponent of $U$
+means the Boolean product. That is, $U$ is applied to the last $k$ qubits if
+and only if the first $n$ qubits are all equal to $\ket{1}$.
+
+\subsubsection{Universal quantum gates}\label{subsubsec:universal}
+
+A small set of gates (e.g.\ $\AND$, $\XOR$ and $\NOT$) can compute an
+arbitrary classical function.  A similar universality result is true for
+quantum computation: a set of gates is said to be \emph{universal for
+  quantum computation} if any unitary operation may be approximated to
+arbitrary accuracy by a quantum circuit involving only those gates.
+
+\begin{keyresult}[Universality of single-qubit gates and $\CNOT$]
+  Any unitary operation on $n$ qubits can be approximated to arbitrary
+  accuracy using single-qubit operations and $\CNOT$ gates.  This is one of
+  the most important results in quantum computation, and justifies the
+  experimental focus on implementing such gates.
+\end{keyresult}
+
+The proof proceeds in two steps:
+
+\paragraph{Step 1: Two-level unitary gates are universal.}
+Consider a unitary matrix $U$ acting on a $d$-dimensional Hilbert space. We
+show how $U$ may be decomposed into a product of \emph{two-level} unitary
+matrices, i.e., unitary matrices which act non-trivially on at most two
+vector components.
+
+The essential idea may be understood by considering $U \in \SU{3}$:
+\begin{equation}
+  U = \begin{pmatrix}
+    a & d & g \\
+    b & e & h \\
+    c & f & j
+  \end{pmatrix}.
+\end{equation}
+One finds two-level unitary matrices $U_1$, $U_2$, $U_3$ such that
+$U_3 U_2 U_1 U = \I$, whence $U = U_1^\dagger U_2^\dagger U_3^\dagger$.
+In general, an element of $\SU{d}$ can be written as a product of $d(d-1)/2$
+two-level unitaries.
+
+\paragraph{Step 2: Two-level unitaries from single-qubit and $\CNOT$ gates.}
+Any two-level unitary on $n$ qubits can be implemented using single-qubit
+and $\CNOT$ gates, via \emph{Gray codes}.
+
+\begin{definition}[Gray code]\label{def:gray-code}
+  Suppose we have distinct binary strings
+  $\mathbf{s} = s_1 s_2\cdots s_n$ and $\mathbf{t} = t_1 t_2\cdots t_n$.
+  A \emph{Gray code} connecting $\mathbf{s}$ and $\mathbf{t}$ is a sequence
+  of binary strings, starting with $\mathbf{s}$ and concluding with
+  $\mathbf{t}$, such that adjacent members of the list differ in exactly one
+  bit.
+\end{definition}
+
+For instance, with $n=3$ qubits, $\mathbf{s} = 111$ and
+$\mathbf{t} = 001$, we have the Gray code $111 \to 011 \to 001$.
+
+Let $g_1, \ldots, g_m$ be the elements of a Gray code connecting
+$\mathbf{s}$ and $\mathbf{t}$, with $g_1 = \mathbf{s}$ and
+$g_m = \mathbf{t}$.  Note that $m \le n+1$ since $\mathbf{s}$ and
+$\mathbf{t}$ can differ in at most $n$ positions.  The quantum circuit for
+the two-level unitary proceeds by:
+\begin{enumerate}
+  \item Performing controlled swaps $\ket{g_1}\to\ket{g_2}\to\cdots\to\ket{g_{m-1}}$.
+  \item Applying a controlled-$\widetilde{U}$ operation at the single bit
+    where $g_{m-1}$ and $g_m$ differ.
+  \item Undoing the controlled swaps from step 1.
+\end{enumerate}
+
+By combining all of these results, an arbitrary unitary on $n$ qubits can be
+implemented using $\bigO{n^2 4^n}$ single-qubit and $\CNOT$ gates.
+
+\begin{remark}
+  The $\bigO{n^2 4^n}$ gate count is unavoidable in the worst case (since
+  there are roughly $4^n$ parameters in an $n$-qubit unitary), but for
+  specific unitaries arising in algorithms, far more efficient decompositions
+  exist.
+\end{remark}

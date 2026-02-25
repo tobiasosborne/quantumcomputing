@@ -1,0 +1,131 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{qc-macros}[2026/02/25 Quantum Computing macro library]
+
+% ══════════════════════════════════════════════════════════════
+%  DIRAC NOTATION
+% ══════════════════════════════════════════════════════════════
+
+% Ket, bra, braket, ketbra
+\newcommand{\ket}[1]{|#1\rangle}
+\newcommand{\bra}[1]{\langle#1|}
+\newcommand{\braket}[2]{\langle#1|#2\rangle}
+\newcommand{\ketbra}[2]{|#1\rangle\langle#2|}
+\newcommand{\expect}[1]{\langle #1 \rangle}
+
+% Common states
+\newcommand{\kezero}{\ket{0}}
+\newcommand{\keone}{\ket{1}}
+\newcommand{\keplus}{\ket{+}}
+\newcommand{\keminus}{\ket{-}}
+
+% ══════════════════════════════════════════════════════════════
+%  OPERATORS & GATES
+% ══════════════════════════════════════════════════════════════
+
+% Identity
+\newcommand{\I}{\mathbb{I}}
+
+% Pauli matrices
+\newcommand{\paulix}{\sigma^x}
+\newcommand{\pauliy}{\sigma^y}
+\newcommand{\pauliz}{\sigma^z}
+
+% Standard gates
+\newcommand{\CNOT}{\textsc{cnot}}
+\newcommand{\SWAP}{\textsc{swap}}
+\newcommand{\Toffoli}{\textsc{toffoli}}
+\newcommand{\Had}{H}  % Hadamard (single-qubit)
+\newcommand{\NOT}{\textsc{not}}
+\newcommand{\AND}{\textsc{and}}
+\newcommand{\OR}{\textsc{or}}
+\newcommand{\XOR}{\textsc{xor}}
+\newcommand{\NAND}{\textsc{nand}}
+\newcommand{\NOR}{\textsc{nor}}
+
+% Controlled-U
+\newcommand{\CU}[1]{C(#1)}
+\newcommand{\CnU}[2]{C^{#1}(#2)}
+
+% ══════════════════════════════════════════════════════════════
+%  LINEAR ALGEBRA
+% ══════════════════════════════════════════════════════════════
+
+% Tensor product
+\newcommand{\tp}{\otimes}
+
+% Hilbert space
+\newcommand{\hilb}{\mathcal{H}}
+
+% Complex numbers, reals, integers
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+
+% Special unitary group
+\newcommand{\SU}[1]{\textsl{SU}(#1)}
+
+% Norm
+\newcommand{\norm}[1]{\lVert #1 \rVert}
+
+% Trace, etc.
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\id}{id}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\vspan}{span}
+\DeclareMathOperator{\poly}{poly}
+
+% ══════════════════════════════════════════════════════════════
+%  COMPLEXITY & ALGORITHMS
+% ══════════════════════════════════════════════════════════════
+
+% Big-O notation
+\newcommand{\bigO}[1]{O\!\left(#1\right)}
+
+% Query oracle
+\newcommand{\Ox}{O_x}
+\newcommand{\Oxpm}{O_{x,\pm}}
+
+% ══════════════════════════════════════════════════════════════
+%  HAMILTONIAN SIMULATION
+% ══════════════════════════════════════════════════════════════
+
+% Upright differential
+\newcommand{\dd}{\mathrm{d}}
+
+% Commutator
+\newcommand{\comm}[2]{[#1,\,#2]}
+
+% Partial derivative
+\newcommand{\pd}[3][]{\frac{\partial^{#1} #2}{\partial {#3}^{#1}}}
+
+% Total derivative
+\newcommand{\td}[2]{\frac{d #1}{d #2}}
+
+% ══════════════════════════════════════════════════════════════
+%  TIKZ STYLES (for quantum circuits)
+% ══════════════════════════════════════════════════════════════
+
+\tikzset{
+  % Quantum wire
+  qwire/.style={thick, spacecadet},
+  % Gate box
+  gate/.style={draw=spacecadet, fill=cgblue!10, thick,
+    minimum size=8mm, inner sep=2pt, font=\sf\small},
+  % Control dot (filled)
+  ctrl/.style={circle, fill=spacecadet, inner sep=1.5pt},
+  % Target (CNOT circle)
+  targ/.style={circle, draw=spacecadet, thick, inner sep=0pt,
+    minimum size=6mm},
+  % Meter (measurement)
+  meter/.style={draw=spacecadet, fill=isabelline, thick,
+    minimum size=8mm, inner sep=2pt},
+  % Phase gate
+  phase/.style={circle, fill=cgblue, inner sep=2pt},
+  % Swap cross
+  swp/.style={cross out, draw=spacecadet, thick,
+    minimum size=5mm, inner sep=0pt},
+}
+
+\endinput

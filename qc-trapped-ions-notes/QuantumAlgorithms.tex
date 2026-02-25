@@ -1,0 +1,316 @@
+\documentclass[12pt,oneside]{amsart}
+
+%\usepackage[T1]{fontenc}
+%\usepackage[utf8]{inputenc}
+\usepackage[german]{babel}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{a4paper}                   % ... or a4paper or a5paper or ... 
+\usepackage{color}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage[mtphrb,mtpcal,mtpfrak]{mtpro2}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows.meta}
+\usepackage[shortalphabetic]{amsrefs}
+\usepackage{wrapfig}
+\usepackage[textsize=tiny]{todonotes}
+\usepackage[many]{tcolorbox}
+\usepackage{pgfplots}
+\usepackage{booktabs}
+\usepgfplotslibrary{patchplots}
+\usepgfplotslibrary{fillbetween}
+
+%\usepackage[no-math]{fontspec}
+%\setsansfont[Scale=0.92]{Helvetica Neue LT Std 65 Medium}
+%\usepackage[scaled=0.92]{helvet}
+%\usepackage{times}
+
+
+
+\usepackage{mathspec}
+\setmathrm{Times LT Std}
+\setmainfont[BoldFont=Times LT Std Bold, ItalicFont=Times LT Std Italic, BoldItalicFont=Times LT Std Bold Italic, Ligatures=TeX]{Times LT Std}
+
+%\setmainfont{Baskerville URW}
+
+%\setsansfont[Scale=0.92,BoldFont=Helvetica Neue LT Std 65 Medium,
+%    ItalicFont=Helvetica Neue LT Std 56 Italic,
+%    BoldItalicFont=Helvetica Neue LT Std 66 Medium Italic,
+%    Ligatures=TeX]{Helvetica Neue LT Std 55 Roman}
+\setsansfont[BoldFont=Whitney-Semibold.otf,ItalicFont=Whitney-MediumItalic.otf,Ligatures=TeX]{Whitney-Medium.otf}
+\setboldmathrm[BoldFont={Times LT Std Bold}]{Times LT Std Bold}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\definecolor{light-gray}{gray}{0.85}
+
+%%% here we define our palette
+
+\definecolor{spacecadet}{HTML}{0D284C}
+\definecolor{munsell}{HTML}{008FA8}
+\definecolor{banana}{HTML}{FFD932}
+\definecolor{cgblue}{HTML}{007CA5}
+\definecolor{isabelline}{HTML}{EAEDEA}
+
+%%%
+
+\makeatletter
+\def\@secnumfont{\bfseries}
+\def\part{\@startsection{part}{0}%
+  \z@{\linespacing\@plus\linespacing}{.5\linespacing}%
+  {\normalfont\bfseries\raggedright}}
+\def\specialsection{\@startsection{section}{1}%
+  \z@{\linespacing\@plus\linespacing}{.5\linespacing}%
+  {\color{cgblue}\normalfont\centering}}
+\def\section{\@startsection{section}{1}%
+  \z@{.7\linespacing\@plus\linespacing}{.5\linespacing}%
+  {\color{cgblue}\normalfont\sf\bfseries\large\centering}}
+\def\subsection{\@startsection{subsection}{2}%
+  \z@{.5\linespacing\@plus.7\linespacing}{-.5em}%
+  {\color{cgblue}\normalfont\sf\bfseries}}
+\def\subsubsection{\@startsection{subsubsection}{3}%
+  \z@{.5\linespacing\@plus.7\linespacing}{-.5em}%
+  {\color{cgblue}\normalfont\sf\itshape}}
+\def\paragraph{\@startsection{paragraph}{4}%
+  \z@\z@{-\fontdimen2\font}%
+  \color{cgblue}\sf\normalfont}
+\def\subparagraph{\@startsection{subparagraph}{5}%
+  \z@\z@{-\fontdimen2\font}%
+  \color{cgblue}\sf\normalfont}
+\makeatother
+
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\conf}{conf}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\im}{im}
+\DeclareMathOperator{\id}{id}
+\DeclareMathOperator{\vspan}{span}
+\DeclareMathOperator{\res}{res}
+\DeclareMathOperator{\real}{Re}
+\DeclareMathOperator{\imag}{Im}
+\DeclareMathOperator{\diff}{diff}
+\DeclareMathOperator{\homeo}{Homeo}
+\DeclareMathOperator{\Mor}{Mor}
+\DeclareMathOperator{\Ob}{Ob}
+\DeclareMathOperator{\target}{Target}
+\DeclareMathOperator{\source}{Source}
+\DeclareMathOperator{\aut}{Aut}
+\DeclareMathOperator{\Sch}{Sch}
+
+\theoremstyle{plain}% default
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem*{corollary}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}{\color{cgblue}Definition}[section]
+\newtheorem{prototypedefinition}{Prototype Definition}[section]
+\newtheorem{physicalintuition}{Physical intuition}[section]
+\newtheorem{conjecture}{Conjecture}[section]
+\newtheorem{beispiel}{\color{cgblue}Beispiel}[section]
+\newtheorem{übung}{\color{cgblue}Übung}[section]
+\newtheorem{exercise}{\color{cgblue}Exercise}[section]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{note}{Note}
+
+\newenvironment{lösung}
+  {\begin{proof}[\color{cgblue}Lösung]\color{spacecadet}}
+  {\end{proof}}
+
+\def\eqbox#1{\tcboxmath[colback=banana,arc=0cm,frame hidden,enhanced]{#1}}
+\def\figbox{\begin{center}\tcboxmath[colback=isabelline,frame hidden,enhanced,sharp corners]{\parbox[c][3cm][c]{10cm}{\ }}\end{center}}
+
+\title[Quantencomputing und Quantenlogik mit gespeicherten Ionen]{Quantencomputing und Quantenlogik mit gespeicherten Ionen: Quantum algorithms}
+\author{Tobias J.\ Osborne}
+\date{\today}                                           % Activate to display a given date or no date
+
+\begin{document}
+
+\maketitle
+
+\section{Quantum algorithms}
+
+\subsection{The early algorithms}
+
+The two most-celebrated quantum algorithms are Shor's factoring algorithm (1994) and Grover's search algorithm (1996). A third important example, possibly more relevant for applications, is the Harrow-Hassidim-Lloyd (HHL) linear-systems algorithm (2008). There are now a multitude of quantum algorithms: For a comprehensive list see 
+\begin{center}
+\parbox[c][5cm][c]{14cm}{\begin{tcolorbox}[colback=banana,arc=0cm,frame hidden,enhanced]\url{https://quantumalgorithmzoo.org/}\end{tcolorbox}}
+\end{center}
+Although there are now very many quantum algorithms, they can often be traced back fairly directly to one of the three quantum algorithms mentioned at beginning. Many practitioners are not satisfied with this situation. Indeed, it is fair to say that our understanding of the \emph{discovery} and \emph{design} of quantum algorithms is still in its infancy. We still have decades of work ahead of us if we want to create something comparable with modern software engineering for classical computers. The field of \emph{quantum software engineering}, which would presumably supply us with robust design practices and patterns has not yet been developed. 
+
+The goal of this lecture is to discuss one key example in considerable detail, Grover's algorithm. This example continues to form the fundamental basis for a wide variety of new algorithms. It is also the algorithm which is conceptually easiest to apply to new problems. Before we discuss Grover's algorithm in detail we'll take a moment to review the early quantum algorithms which formed the original inspiration for this method. In particular, we will explain the \emph{query model} relevant for Grover's algorithm first in terms of the Deutsch-Jozsa algorithm. 
+
+\subsubsection{The query model}
+To explain the query setting, consider an $N$-bit input $x = (x_0, \ldots , x_{N−1}) \in \{0, 1\}^{\times N}$. Usually we take $N=2^n$, so that we can address bit $x_j$ using an $n$-bit index $j$. One can think of the input
+as an $N$-bit memory which we can access at any point of our choice (a ``Random Access Memory'',
+or RAM). E.g., a memory of $N = 16$ bits can be indexed by addresses $j\in \{0,1\}^{\times 4}$. Memory accesses are modelled via so-called ``black-boxes'' which are engineered so as to output the bit $x_j$ on input $j$. As a quantum operation, they are modelled by unitary mappings on $n + 1$ qubits:
+\begin{equation}
+  O_x:|j,b\rangle \rightarrow |j,b\oplus x_j\rangle,
+\end{equation}
+where $j\in \{0,1\}^{\times n}$, $b\in \{0,1\}$, and $\oplus$ denotes addition modulo 2, or the {\sc xor} operation. The first $n$ qubits of the state are called the \emph{address bits} (or \emph{address register}), while the $(n + 1)$st qubit is called the \emph{target bit}. If $b=0$ then $O_x$ simply puts the value $x_j$ in the final qubit. The reason for this definition is so that this operation is realisable in quantum mechanics: it must be unitary. Thus we also have to specify what happens if the initial value of the target bit is $1$. As a matrix $O_x$ is a \emph{permutation matrix} and hence unitary. Because $O_x$ is a quantum operation a quantum computer can apply $O_x$ on a superposition of various addresses $j$, something that a classical computer cannot do. One application of this black-box is called a \emph{query}, and counting the required number of queries to compute
+this or that function of $x$ is something that is done a lot in the design and study of quantum algorithms.
+
+Given the ability to make a query of the above type, we can also make a query of the form $|j\rangle \mapsto (-1)^{x_j}|j\rangle$ by setting the target bit to the state $|-\rangle \equiv \frac{1}{\sqrt{2}}(|0\rangle -|1\rangle) = H|1\rangle$
+\begin{equation}
+  O_x |j\rangle|-\rangle = |j\rangle \left(\frac{1}{\sqrt{2}}(|x_j\rangle -|1\oplus x_j\rangle)\right) = (-1)^{x_j}|j\rangle|-\rangle.
+\end{equation}
+This kind of query puts the output variable in the phase of the state: if $x_j$ is $1$ then we get a $−1$ in the phase of basis state $|j\rangle$; if $x_j = 0$ then nothing happens to $|j\rangle$. Such ``phase-queries'' or 
+or \emph{phase-oracles} are often more convenient than the standard type of query. We denote the
+corresponding $n$-qubit unitary transformation by $O_{x,\pm}|j\rangle = (-1)^{x_j}|j\rangle$.
+
+\subsubsection{The Deutsch-Jozsa problem}
+\begin{center}
+\parbox[c][5cm][c]{14cm}{\begin{tcolorbox}[colback=banana,arc=0cm,frame hidden,enhanced] For $N=2^n$, we are given $x\in \{0,1\}^{\times N}$ such that either: (1) all $x_j$ have the same value (``constant''); or (2) half ($N/2$) of the $x_j$ are $0$ and the other half are $1$ (``balanced''). The objective is to determine which situation holds. \end{tcolorbox}}
+\end{center}
+
+The algorithm of Deutsch and Jozsa proceeds as follows:
+\begin{enumerate}
+  \item Initialise an $n$-qubit state in $|0\rangle|0\rangle \cdots |0\rangle \equiv |0\rangle^{\otimes n}$.
+  \item Apply a hadamard gate to each qubit: $H^{\otimes n} \equiv H\otimes H\otimes \cdots \otimes H$.
+  \item Apply $O_{x,\pm}$ to the qubits.
+  \item Apply $H^{\otimes n}$ again. 
+  \item Measure all of the qubits in the computational basis.
+\end{enumerate}
+The complete quantum algorithm is thus the unitary 
+\begin{equation}
+  \eqbox{U_{\text{DJ}} \equiv H^{\otimes n}O_{x,\pm}H^{\otimes n}.}
+\end{equation}
+
+We follow the state of the quantum computer after all of these steps. Initially the state is $|0\rangle^{\otimes n}$. After the first Hadamard transform we obtain a uniform superposition of all the $j$:
+\begin{equation}
+  H^{\otimes n}|0\rangle^{\otimes n} = \frac{1}{\sqrt{2^n}}\sum_{j\in \{0,1\}^{\times n}} |j\rangle.
+\end{equation}
+The $O_{x,\pm}$ query produces 
+\begin{equation}
+  O_{x,\pm}H^{\otimes n}|0\rangle^{\otimes n} = \frac{1}{\sqrt{2^n}}\sum_{j\in \{0,1\}^{\times n}} (-1)^{x_j}|j\rangle.
+\end{equation}
+Applying $H^{\otimes n}$ gives
+\begin{equation}
+  H^{\otimes n}O_{x,\pm}H^{\otimes n}|0\rangle^{\otimes n} = \frac{1}{2^n}\sum_{j\in \{0,1\}^{\times n}}(-1)^{x_j}\sum_{k\in \{0,1\}^{\times n}} (-1)^{j\cdot k}|k\rangle,
+\end{equation}
+where $j\cdot k \equiv \sum_{l=1}^n j_l k_l$. Since $j\cdot \mathbf{0} = 0$ for all $j\in \{0,1\}^{\times n}$, we see that the amplitude of the $|0\rangle^{\otimes n}$-state in the final superposition is
+\begin{equation}
+  \frac{1}{2^n}\sum_{j\in \{0,1\}^{\times n}}(-1)^{x_j} = \begin{cases}
+    1\quad \text{if $x_j=0$ for all $j$,} \\
+    -1\quad \text{if $x_j=1$ for all $j$,} \\
+    0\quad \text{if $x$ is balanced.}
+  \end{cases}
+\end{equation}
+Hence the final observation will yield $|0\rangle^{\otimes n}$ if $x$ is constant and will yield some other state if $x$ is balanced. Accordingly, the Deutsch-Jozsa problem can be solved with certainty using only $1$ quantum query and $O(n)$ other operations.
+
+Here is an example of Deutsch-Jozsa for $n=3$:
+\begin{center}
+  \includegraphics[width=0.65\textwidth]{dj.png}
+\end{center}
+
+Any classical deterministic algorithm needs at least $N/2 + 1$ queries: if it has made only $N/2$ queries and seen only $0$s, the correct output is still undetermined. However, a classical algorithm can solve this problem efficiently if we allow a small error probability: just query $x$ at two random positions, output “constant” if those bits are the same and “balanced” if they are different. This algorithm outputs the correct answer with probability $1$ if $x$ is constant and outputs the correct answer with probability $1/2$ if $x$ is balanced. Thus the quantum-classical separation of this problem only holds if we consider algorithms without error probability.
+
+\subsection{Grover's algorithm}
+The second-most important quantum algorithm after Shor’s algorithm is Grover’s search algorithm. It
+doesn’t provide an exponential speed-up, only a quadratic speed-up, but it is much more widely applicable than Shor.
+
+\subsubsection{The search problem}
+\begin{center}
+\parbox[c][5cm][c]{14cm}{\begin{tcolorbox}[colback=banana,arc=0cm,frame hidden,enhanced] For $N=2^n$, we are given $x\in \{0,1\}^{\times N}$. The goal is to find a $j$ such that $x_j = 1$ (and
+to output ``no solutions'' if there are no such $j$). We denote the number of solutions in $x$ by $t$ (i.e.,
+$t$ is the Hamming weight of $x$). \end{tcolorbox}}
+\end{center}
+This problem may be viewed as a simplification of the problem of searching an $N$-slot unordered database or search space, modeled by an $N$-bit string. Classically, a randomized algorithm would need $\Theta(N)$ queries to solve the search problem. Grover’s algorithm solves it in $O(\sqrt{N})$ queries, and $O(\sqrt{N}\log(N))$ other gates.
+
+\subsubsection{The algorithm}
+We again exploit the phase oracle $O_{x,\pm}|j\rangle = (-1)^{x_j}|j\rangle$. Define 
+\begin{equation}
+  R_0|j\rangle \equiv \begin{cases}
+    (-1)|j\rangle\quad j\not= \mathbf{0} \\
+    |0\rangle^{\otimes n}\quad \text{for $j= \mathbf{0}$.}
+  \end{cases}
+\end{equation}
+The \emph{Grover iterate} is 
+\begin{equation}
+  \mathcal{G} \equiv H^{\otimes n}R_0H^{\otimes n}O_{x,\pm}.
+\end{equation}
+Note that a single Grover iterate makes a single query, and uses $O(\log(N))$ other gates.
+
+Grover’s algorithm starts in the $n$-bit state $|0\rangle^{\otimes n}$, applies a Hadamard transformation to each
+qubit to get the uniform superposition 
+\begin{equation}
+  H^{\otimes n}|0\rangle^{\otimes n} = \frac{1}{\sqrt{2^n}}\sum_{j\in \{0,1\}^{\times n}} |j\rangle,
+\end{equation} 
+applies $\mathcal{G}$ to this state $k$ times (for some $k$ to be chosen later), and then measures the final state. Intuitively, what happens is that in each iteration some amplitude is moved from the indices of the $0$-bits to the indices of the $1$-bits. The algorithm stops when almost all of the amplitude is on the $1$-bits, in which case a measurement of the final state will probably give the index of a $1$-bit. The following figure illustrates this:
+\begin{center}
+  \includegraphics[width=0.85\textwidth]{grover.png}
+\end{center}
+
+In order to analyze the execution of the algorithm, we define the following ``good'' and ``bad'' states, corresponding to the solutions and non-solutions, respectively:
+\begin{equation}
+  |G\rangle \equiv  \frac{1}{\sqrt{t}}\sum_{\text{$j$ s.t. $x_j=1$}}|j\rangle, \quad\text{and}\quad |B\rangle \equiv  \frac{1}{\sqrt{N-t}}\sum_{\text{$j$ s.t. $x_j=0$}}|j\rangle.
+\end{equation}
+Then the uniform state over all indices can be written as
+\begin{equation}
+  |U\rangle = \frac{1}{\sqrt{2^n}}\sum_{j\in \{0,1\}^{\times n}} |j\rangle = \sin(\theta)|G\rangle + \cos(\theta)|B\rangle, \quad \text{for $\theta= \sin^{-1}\left(\sqrt{t/N}\right)$.}
+\end{equation} 
+The Grover iterate $\mathcal{G}$ is actually the product of two \emph{reflections}. Firstly, $O_{x,\pm}$ is a reflection through the subspace $V$ spanned by the basis states that are not solutions; restricted to the $2$-dimensional space spanned by $|G\rangle$ and $|B\rangle$ this is in fact just a reflection $2|B\rangle\langle B|-\mathbb{I}$ through the state $|B\rangle$. Secondly,
+\begin{equation}
+  H^{\otimes n}R_0H^{\otimes n} = H^{\otimes n}(2|\mathbf{0}\rangle\langle \mathbf{0}|-\mathbb{I})H^{\otimes n} = 2 H^{\otimes n}|\mathbf{0}\rangle\langle \mathbf{0}|H^{\otimes n}-\mathbb{I} = 2|U\rangle\langle U|-\mathbb{I}.
+\end{equation} 
+Grover's algorithm may be described as the following sequence of operations:
+\begin{enumerate}
+  \item Set up the initial state $|U\rangle = \frac{1}{\sqrt{2^n}}\sum_{j\in \{0,1\}^{\times n}} |j\rangle$.
+  \item Repeat the following $k=O(1/\sqrt{\epsilon})$ times:
+  \begin{enumerate}
+    \item Reflect through $|B\rangle$ (i.e., apply $O_{x,\pm}$)
+    \item Reflect through $|U\rangle$ (i.e., apply $H^{\otimes n}R_0H^{\otimes n}$)
+  \end{enumerate}
+  \item Measure the first register and check that the resulting $j$ is a solution.
+\end{enumerate} 
+
+\subsubsection{Geometric argument for the correctness of Grover's algorithm}
+There is an intuitive geometric argument why the algorithm works. The analysis is in the 2-dimensional real plane spanned by $|B\rangle$ and $|G\rangle$. We start with
+\begin{equation}
+  |U\rangle = \sin(\theta)|G\rangle + \cos(\theta)|B\rangle
+\end{equation}
+The two reflections (a) and (b) increase the angle from $\theta$ to $3\theta$, moving us towards the good state
+as illustrated here:
+\begin{center}
+  \includegraphics[width=0.95\textwidth]{groveriterations.png}
+\end{center}
+The next two reflections (a) and (b) increase the angle with another $2\theta$, etc. More generally,
+after $k$ applications of (a) and (b) our state has become 
+\begin{equation}
+\sin((2k + 1)\theta)|G\rangle + \cos((2k + 1)\theta)|B\rangle.
+\end{equation}
+If we now measure, the probability of seeing a solution is $P_k = \sin^2((2k + 1)\theta)$. We want $P_k$ to be
+as close to $1$ as possible. Note that if we can choose $\widetilde{k} = \frac{\pi}{4\theta} − 1/2$, then $(2\widetilde{k} + 1)\theta = \pi/2$ and hence $P_{\tilde{k}} = \sin^2(\pi/2) = 1$. An example where this works is if $t = N/4$, for then $\theta = \pi/6$ and $\widetilde{k} = 1$. 
+
+Unfortunately $\widetilde{k} = \frac{\pi}{4\theta}−1/2$ will usually not be an integer, and we can only do an integer number of Grover iterations. However, if we choose $k$ to be the integer closest to $\widetilde{k}$, then our final state will still be close to $|G\rangle$ and the failure probability will still be small (assuming $t\ll N$):
+\begin{equation}
+  \begin{split}
+    1-P_k &= \cos^2((2k+1)\theta) = \cos^2((2\widetilde{k}+1)\theta + 2(k-\widetilde{k})\theta) \\
+    &=  \cos^2(\pi/2 + 2(k-\widetilde{k})\theta) = \sin^2(2(k-\widetilde{k})\theta) \le \sin^2(\theta) = \frac{t}{N},
+  \end{split}
+\end{equation}
+where we used $|k-\widetilde{k}|\le \frac12$. Since $\sin^{-1}(\theta)\ge \theta$, the number of queries is $k\le \frac{\pi}{4\theta} \le \frac{\pi}{4}\sqrt{\frac{N}{t}}$.
+
+
+Thus we have a bounded-error quantum search algorithm with $O(\sqrt{N/t})$ queries, assuming we
+know t. We now list (without proof) a number of useful variants of Grover:
+\begin{itemize}
+  \item If we know $t$ exactly, then the algorithm can be tweaked to end up in exactly the good state.
+Roughly speaking, you can make the angle $\theta$ slightly smaller, such that $\widetilde{k} = \pi/4\theta − 1/2$
+becomes an integer.
+  \item If we do not know $t$, then there is a problem: we do not know which $k$ to use, so we do
+not know when to stop doing the Grover iterates. Note that if $k$ gets too big, the success
+probability $P_k = \sin^2((2k + 1)\theta)$ goes down again! However, a slightly more complicated
+algorithm (basically running the above algorithm with exponentially increasing guesses for $k$) shows that an expected number of $O(\sqrt{N/t})$ queries still suffices to find a solution if there are $t$ solutions. If there is no solution ($t = 0$), then we can easily detect that by checking $x_j$ for the $j$ that the algorithm outputs.
+  \item If we know a lower bound $\tau$ on the actual (possibly unknown) number of solutions $t$, then the
+above algorithm uses an expected number of $O(\sqrt{N/\tau})$ queries. If we run this algorithm for up to three times its expected number of queries, then (by Markov’s inequality) with probability at least $2/3$ it will have found a solution. This way we can turn an expected runtime into a worst-case runtime.
+  \item If we do not know $t$ but would like to reduce the probability of not finding a solution to some
+small $\epsilon >0$, then we can do this using $O(\sqrt{N \log(1/\epsilon)})$ queries. NB: The important part here is that the $\log(1/\epsilon)$ is inside the square-root; usual error reduction by $O(\log(1/\epsilon))$ repetitions of basic Grover would give the worse upper bound of $O(\sqrt{N} \log(1/\epsilon))$ queries.
+\end{itemize}
+\end{document}

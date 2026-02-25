@@ -1,0 +1,243 @@
+\documentclass[12pt,oneside]{amsart}
+
+%\usepackage[T1]{fontenc}
+%\usepackage[utf8]{inputenc}
+%\usepackage[german]{babel}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{a4paper}                   % ... or a4paper or a5paper or ... 
+\usepackage{color}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage[mtphrb,mtpcal,mtpfrak]{mtpro2}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows.meta}
+\usepackage[shortalphabetic]{amsrefs}
+\usepackage{wrapfig}
+\usepackage[textsize=tiny]{todonotes}
+\usepackage[many]{tcolorbox}
+\usepackage{pgfplots}
+\usepackage{booktabs}
+\usepgfplotslibrary{patchplots}
+\usepgfplotslibrary{fillbetween}
+
+%\usepackage[no-math]{fontspec}
+%\setsansfont[Scale=0.92]{Helvetica Neue LT Std 65 Medium}
+%\usepackage[scaled=0.92]{helvet}
+%\usepackage{times}
+
+
+
+\usepackage{mathspec}
+\setmathrm{Times LT Std}
+\setmainfont[BoldFont=Times LT Std Bold, ItalicFont=Times LT Std Italic, BoldItalicFont=Times LT Std Bold Italic, Ligatures=TeX]{Times LT Std}
+
+%\setmainfont{Baskerville URW}
+
+%\setsansfont[Scale=0.92,BoldFont=Helvetica Neue LT Std 65 Medium,
+%    ItalicFont=Helvetica Neue LT Std 56 Italic,
+%    BoldItalicFont=Helvetica Neue LT Std 66 Medium Italic,
+%    Ligatures=TeX]{Helvetica Neue LT Std 55 Roman}
+\setsansfont[BoldFont=Whitney-Semibold.otf,ItalicFont=Whitney-MediumItalic.otf,Ligatures=TeX]{Whitney-Medium.otf}
+\setboldmathrm[BoldFont={Times LT Std Bold}]{Times LT Std Bold}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\definecolor{light-gray}{gray}{0.85}
+
+%%% here we define our palette
+
+\definecolor{spacecadet}{HTML}{0D284C}
+\definecolor{munsell}{HTML}{008FA8}
+\definecolor{banana}{HTML}{FFD932}
+\definecolor{cgblue}{HTML}{007CA5}
+\definecolor{isabelline}{HTML}{EAEDEA}
+
+%%%
+
+\makeatletter
+\def\@secnumfont{\bfseries}
+\def\part{\@startsection{part}{0}%
+  \z@{\linespacing\@plus\linespacing}{.5\linespacing}%
+  {\normalfont\bfseries\raggedright}}
+\def\specialsection{\@startsection{section}{1}%
+  \z@{\linespacing\@plus\linespacing}{.5\linespacing}%
+  {\color{cgblue}\normalfont\centering}}
+\def\section{\@startsection{section}{1}%
+  \z@{.7\linespacing\@plus\linespacing}{.5\linespacing}%
+  {\color{cgblue}\normalfont\sf\bfseries\large\centering}}
+\def\subsection{\@startsection{subsection}{2}%
+  \z@{.5\linespacing\@plus.7\linespacing}{-.5em}%
+  {\color{cgblue}\normalfont\sf\bfseries}}
+\def\subsubsection{\@startsection{subsubsection}{3}%
+  \z@{.5\linespacing\@plus.7\linespacing}{-.5em}%
+  {\color{cgblue}\normalfont\sf\itshape}}
+\def\paragraph{\@startsection{paragraph}{4}%
+  \z@\z@{-\fontdimen2\font}%
+  \color{cgblue}\sf\normalfont}
+\def\subparagraph{\@startsection{subparagraph}{5}%
+  \z@\z@{-\fontdimen2\font}%
+  \color{cgblue}\sf\normalfont}
+\makeatother
+
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\conf}{conf}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\im}{im}
+\DeclareMathOperator{\id}{id}
+\DeclareMathOperator{\vspan}{span}
+\DeclareMathOperator{\res}{res}
+\DeclareMathOperator{\real}{Re}
+\DeclareMathOperator{\imag}{Im}
+\DeclareMathOperator{\diff}{diff}
+\DeclareMathOperator{\homeo}{Homeo}
+\DeclareMathOperator{\Mor}{Mor}
+\DeclareMathOperator{\Ob}{Ob}
+\DeclareMathOperator{\target}{Target}
+\DeclareMathOperator{\source}{Source}
+\DeclareMathOperator{\aut}{Aut}
+\DeclareMathOperator{\Sch}{Sch}
+
+\theoremstyle{plain}% default
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem*{corollary}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}{\color{cgblue}Definition}[section]
+\newtheorem{prototypedefinition}{Prototype Definition}[section]
+\newtheorem{physicalintuition}{Physical intuition}[section]
+\newtheorem{conjecture}{Conjecture}[section]
+\newtheorem{beispiel}{\color{cgblue}Beispiel}[section]
+\newtheorem{übung}{\color{cgblue}Übung}[section]
+\newtheorem{exercise}{\color{cgblue}Exercise}[section]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{note}{Note}
+
+\newenvironment{lösung}
+  {\begin{proof}[\color{cgblue}Lösung]\color{spacecadet}}
+  {\end{proof}}
+
+\def\eqbox#1{\tcboxmath[colback=banana,arc=0cm,frame hidden,enhanced]{#1}}
+\def\figbox{\begin{center}\tcboxmath[colback=isabelline,frame hidden,enhanced,sharp corners]{\parbox[c][3cm][c]{10cm}{\ }}\end{center}}
+
+\title[Quantencomputing und Quantenlogik mit gespeicherten Ionen]{Quantencomputing und Quantenlogik mit gespeicherten Ionen: Quantum algorithms}
+\author{Tobias J.\ Osborne}
+\date{\today}                                           % Activate to display a given date or no date
+
+\begin{document}
+
+\maketitle
+
+\section{Trotterization and quantum simulation}
+
+Complex quantum systems have numerous industrially significant applications, from molecular structure for quantum chemistry through to materials design. Despite their its importance, however, progress on understanding the physics of such systems faces continuing challenges. 
+
+The direct simulation of quantum systems by classical computers is, as mentioned, possible, but in general it is inefficient. To see this consider Schödinger's equation for a (high-dimensional) quantum system:
+\begin{equation}\label{eq:se}
+  -i\frac{d}{dt}|\psi\rangle = H |\psi\rangle.  
+\end{equation} 
+If one writes out this equation in terms of a basis for hilbert space one obtains a system of coupled linear ordinary differential equations. Such systems are straightforward to solve numerically on a classical computer. So what is the difficulty? The key challenge in simulating quantum systems is the \emph{exponential} number of
+differential equations which must be solved. For one qubit evolving according to the Schrödinger equation, a system of two differential equations must be solved; for two qubits, four equations; and for $n$ qubits, $2^n$ equations. Sometimes, insightful approximations can be made which reduce the effective number of equations involved, thus making classical simulation of the quantum system feasible. However, there are many physically
+interesting quantum systems for which no such approximations are known.
+
+
+\subsection{Many body quantum systems}
+A many body quantum system is comprised of many quantum degrees of freedom. We suppose, for the sake of simplicity, that our systems are made from \emph{distinguishable} degrees of freedom rather than fermions or bosons. (The case of fermions and bosons can also be covered with some extra work, but the basic ideas remain the same.) Thus we model our system as a collection of $n$ qubits with hilbert space
+\begin{equation}
+  \mathcal{H}\equiv (\mathbb{C}^2)^{\otimes n}.
+\end{equation}
+The central assumption we make in this lecture is that the dynamics of the system, as described by the unitary $U(t)$, is generated by a hamiltonian which is \emph{local}, i.e., 
+\begin{equation}
+  H = \sum_{j=1}^L h_j
+\end{equation}
+where the operator $h_j$ acts nontrivially on only a constant number (e.g., at most $2$) qubits. Here $L$ can be any polynomial in the number $n$ of qubits. An example of such a model would be the transverse Ising model
+\begin{equation} 
+  H = \sum_{j=1}^{n-1} \sigma^x_j\sigma_{j+1}^x + \lambda \sum_{j=1}^n \sigma_j^z.
+\end{equation}
+Local hamiltonians model a variety of systems from complex molecules to exotic materials. 
+
+\subsection{The quantum simulation algorithm}
+The goal of quantum simulation is, for a given $t$, to prepare a quantum computer in the state $|\psi(t)\rangle$, corresponding to the solution of the Schrödinger equation (\ref{eq:se}):
+\begin{equation}
+  |\psi(t)\rangle = e^{-iHt}|\psi(0)\rangle.
+\end{equation}
+Thus, the objective is to implement the unitary $U(t) \equiv e^{-iHt}$ with quantum gates. If we simply apply the constructive argument appearing in the proof of the universality theorem covered in the lecture ``Quantum gate operations, circuit model'' we would run into the problem that we would need roughly $2^{2^n}$ elementary quantum gates. Indeed, just the task of working out any matrix element of $U(t)$ (required for any quantum compilation-type strategy) requires that we solve the Schrödinger equation in the first place. We need a different strategy. 
+
+It turns out that the efficient approximation of the solution $U(t)$, to high order, of the Schrödinger equation is possible for any local hamiltonian. The crucial point is that although $e^{-iHt}$ is difficult to compute, $e^{-ih_jt}$ acts on a much smaller subsystem, and is straightforward to approximate using quantum circuits. However, because $[h_j,h_k]\not= 0$ in general, $e^{-Ht} \not= \prod_{j=1}^L e^{-ih_jt}$. How, then, can $e^{-ih_jt}$ be useful in constructing $U(t)$?
+
+\begin{exercise}
+For $H = \sum_{j=1}^L h_j$ prove that 
+\begin{equation}
+  U(t) = e^{-iHt} = \prod_{j=1}^L e^{-ih_jt}
+\end{equation}
+for all $t$ if $[h_j,h_k]= 0$ for all $j,k$.
+\end{exercise}
+
+\begin{exercise}
+Argue that the restriction of $h_j$ to involve at most $c$ qubits implies that in the sum $H = \sum_{j=1}^L h_j$ the number $L$ is upper bounded by a polynomial in $n$, the number of qubits.
+\end{exercise}
+
+The heart of quantum simulation algorithms is the following asymptotic approximation theorem:
+\begin{theorem}[Lie-Trotter formula]
+  Let $A$ and $B$ be Hermitian operators. Then for any real $t$,
+  \begin{equation}
+    \lim_{n\rightarrow \infty} \left(e^{iA\frac{t}{n}}e^{iB\frac{t}{n}}\right)^{n} = e^{i(A+B)t}.
+  \end{equation}
+\end{theorem}
+\begin{proof}
+  Via the Taylor theorem with remainder we have that
+  \begin{equation}
+    e^{iA\frac{t}{n}} = \mathbb{I}+ \frac{1}{n} iAt + O\left(\frac{|t|^2\|A\|^2}{n^2}\right),
+  \end{equation}
+  so that
+  \begin{equation}
+    e^{iA\frac{t}{n}}e^{iB\frac{t}{n}} = \mathbb{I}+ \frac{1}{n} i(A+B)t + O\left(\frac{|t|^2(\|A\|+\|B\|)^2}{n^2}\right).
+  \end{equation}
+  Taking products:
+  \begin{equation}
+    \left(e^{iA\frac{t}{n}}e^{iB\frac{t}{n}}\right)^{n} = \mathbb{I}+ \sum_{k=1}^n \binom{n}{k}\frac{1}{n^k} \left(i(A+B)t\right)^k + O\left(\frac{1}{n}\right),
+  \end{equation}
+  which, together with, 
+  \begin{equation}
+    \frac{1}{n^k}\binom{n}{k} = \left(1+O\left(\frac{1}{n}\right)\right)
+  \end{equation}
+  gives
+  \begin{equation}
+    \lim_{n\rightarrow \infty} \left(e^{iA\frac{t}{n}}e^{iB\frac{t}{n}}\right)^{n} = \lim_{n\rightarrow \infty}\sum_{k=0}^n \frac{(it)^k}{k!}(A+B)^k\left(1+O\left(\frac{1}{n}\right)\right) + O\left(\frac{1}{n}\right) = e^{i(A+B)t}.
+  \end{equation}
+\end{proof}
+
+By inductively applying the Lie-Trotter formula, one demonstrates that, for $n$ large enough, one can approximate
+\begin{equation}
+  U(t) = e^{-it\sum_{j=1}^Lh_j} \approx \left(e^{-i h_1\frac{t}{n}}e^{-i h_2\frac{t}{n}}\cdots e^{-i h_L\frac{t}{n}}\right)^{n}.
+\end{equation}
+Notice that this is now a product of \emph{local} unitary operators.
+
+We can now present the \emph{Quantum simulation algorithm}:
+\begin{itemize}
+  \item {\bf Input}: (1) A hamiltonian $H = \sum_{j=1}^L h_j$ acting on $n$ qubits, where each $h_j$ acts on a small subsystem of size independent of $n$; (2) an initial state $|\psi_0\rangle$, of the system at $t = 0$; (3) a positive, non-zero accuracy $\delta$; and (4) a time $t_f$ at which the evolved state is desired.
+  \item {\bf Output}: A state $|\widetilde{\psi}(t_f)\rangle$ such that $|\langle\widetilde{\psi}(t_f)|e^{-iHt}|\psi_0\rangle|^2 \ge 1-\delta$.
+  \item {\bf Runtime}: $O(\text{poly}(1/\delta))$ operations.
+  \item {\bf Procedure}: Define $U_{\Delta t} \equiv e^{-i h_1\Delta t}e^{-i h_2\Delta t}\cdots e^{-i h_L\Delta t}$ and choose $\Delta t$ such that the expected error is acceptable (and $j\Delta t = t_f$ for an integer $n$), construct the corresponding quantum circuit for the iterative step $U_{\Delta t}$, and do:
+  \begin{enumerate}
+    \item Initialise state: $|\psi_0\rangle$; set $j=0$.
+    \item Iteratively update: $|\widetilde{\psi}_{j+1}\rangle = U_{\Delta t}|\widetilde{\psi}_{j}\rangle$.
+    \item Loop: $j=j+1$; goto 2 until $j\Delta t \ge t_f$.
+    \item Final result: $|\widetilde{\psi}(t_f)\rangle=|\widetilde{\psi}_{j}\rangle$.
+  \end{enumerate}
+\end{itemize}
+
+
+\subsection{Advanced techniques and further reading}
+
+With the deployment of near-term quantum information processing devices, new possibilities for the simulation of complex quantum systems have emerged. A key new technique available with quantum computation is the ability to directly simulate the Schrödinger equation itself. Here there has been dramatic progress with a multitude of available methods, building on Lie-Trotter expansions \cite{zalkaSimulatingQuantumSystems1998,childsTheoryTrotterError2021,lowComplexityImplementingTrotter2022} and more advanced techniques such as the quantum singular value transform \cite{gilyenQuantumSingularValue2019,martynGrandUnificationQuantum2021}, quantum walk methods (qubitization) \cite{lowHamiltonianSimulationQubitization2019,lowOptimalHamiltonianSimulation2017}, linear combination of unitaries \cite{childsHamiltonianSimulationUsing}, and randomized evolutions (e.g., qDRIFT \cite{campbellRandomCompilerFast2019} and density matrix exponentiation \cite{lloydQuantumPrincipalComponent2014a}). 
+
+\bibliographystyle{unsrt}
+\bibliography{References}
+\end{document}

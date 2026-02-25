@@ -1,0 +1,144 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{qc-tikz-templates}[2026/02/25 QC lecture notes TikZ/pgfplots templates]
+
+% Requires qc-style.sty (colors) and qc-macros.sty (TikZ base styles) loaded first.
+\RequirePackage{pgfplotstable}
+
+% ================================================================
+%  STANDARD DIMENSIONS
+% ================================================================
+\newlength{\qcfigwidth}      \setlength{\qcfigwidth}{7cm}
+\newlength{\qcfigheight}     \setlength{\qcfigheight}{5cm}
+\newlength{\qcwidefigwidth}  \setlength{\qcwidefigwidth}{12cm}
+\newlength{\qcwidefigheight} \setlength{\qcwidefigheight}{6cm}
+
+% ================================================================
+%  LINE WIDTHS
+% ================================================================
+\tikzset{
+  qc thin/.style={line width=0.4pt},
+  qc std/.style={line width=0.8pt},
+  qc thick/.style={line width=1.2pt},
+  qc axis/.style={line width=0.6pt},
+}
+
+% ================================================================
+%  COLOR CYCLE (matches the QC palette)
+% ================================================================
+\pgfplotscreateplotcyclelist{qccolors}{
+  {cgblue,   line width=1.0pt},
+  {munsell,  line width=1.0pt},
+  {banana!80!black, line width=1.0pt},
+  {spacecadet, line width=1.0pt},
+  {cgblue,   line width=1.0pt, dashed},
+  {munsell,  line width=1.0pt, dashed},
+}
+
+% ================================================================
+%  PGFPLOTS STYLES
+% ================================================================
+
+% Base 2D plot
+\pgfplotsset{
+  qcplot/.style={
+    width=\qcfigwidth,
+    height=\qcfigheight,
+    axis lines=left,
+    every axis x label/.style={at={(ticklabel* cs:1.0)}, anchor=west,
+      font=\small},
+    every axis y label/.style={at={(ticklabel* cs:1.0)}, anchor=south,
+      font=\small},
+    every axis title/.style={at={(0.5,1.05)}, anchor=south,
+      font=\sf\small\bfseries, text=cgblue},
+    tick label style={font=\footnotesize, text=spacecadet},
+    axis line style={spacecadet, line width=0.6pt},
+    major grid style={light-gray, very thin},
+    grid=major,
+    cycle list name=qccolors,
+    legend style={
+      font=\footnotesize, draw=spacecadet!30,
+      fill=white, fill opacity=0.8, text opacity=1,
+      rounded corners=2pt, inner sep=3pt,
+    },
+    clip=true,
+  },
+  % Wide variant
+  qcplotwide/.style={
+    qcplot,
+    width=\qcwidefigwidth,
+    height=\qcwidefigheight,
+  },
+}
+
+% ================================================================
+%  QUANTUM CIRCUIT DRAWING MACROS
+% ================================================================
+
+% Draw n quantum wires from x=x0 to x=x1
+% Usage: \qcwires{n}{x0}{x1}
+\newcommand{\qcwires}[3]{%
+  \foreach \i in {1,...,#1} {
+    \draw[qwire] (#2,{-\i}) -- (#3,{-\i});
+  }%
+}
+
+% Single-qubit gate on wire w at position x
+% Usage: \qcgate{x}{w}{label}
+\newcommand{\qcgate}[3]{%
+  \node[gate] at (#1,{-#2}) {$#3$};
+}
+
+% Control dot at position (x, wire)
+% Usage: \qcctrl{x}{w}
+\newcommand{\qcctrl}[2]{%
+  \node[ctrl] at (#1,{-#2}) {};
+}
+
+% CNOT target at position (x, wire)
+% Usage: \qccnottarg{x}{w}
+\newcommand{\qccnottarg}[2]{%
+  \node[targ] at (#1,{-#2}) {};
+  \draw[thick,spacecadet] (#1,{-#2-0.3}) -- (#1,{-#2+0.3});
+  \draw[thick,spacecadet] ({#1-0.3},{-#2}) -- ({#1+0.3},{-#2});
+}
+
+% Vertical control line between wires w1 and w2 at position x
+% Usage: \qcctrlline{x}{w1}{w2}
+\newcommand{\qcctrlline}[3]{%
+  \draw[thick,spacecadet] (#1,{-#2}) -- (#1,{-#3});
+}
+
+% Measurement box on wire w at position x
+% Usage: \qcmeas{x}{w}
+\newcommand{\qcmeas}[2]{%
+  \node[meter] at (#1,{-#2}) {};
+  \draw[spacecadet] ({#1-0.25},{-#2+0.05}) arc (180:0:0.25 and 0.2);
+  \draw[spacecadet,->] (#1,{-#2+0.05}) -- ({#1+0.15},{-#2+0.3});
+}
+
+% Wire label at the left
+% Usage: \qclabel{w}{label}
+\newcommand{\qclabel}[2]{%
+  \node[anchor=east, font=\small] at (-0.3,{-#1}) {$#2$};
+}
+
+% ================================================================
+%  BLOCH SPHERE TEMPLATE
+% ================================================================
+
+\newcommand{\blochsphere}[1][]{%
+  \begin{scope}[#1]
+    % Sphere outline
+    \draw[spacecadet, thick] (0,0) circle (1.5);
+    % Equator (dashed ellipse)
+    \draw[spacecadet, dashed, thin] (0,0) ellipse (1.5 and 0.5);
+    % Axes
+    \draw[spacecadet, thin, ->] (0,-1.7) -- (0,1.9) node[above,font=\small] {$\ket{0}$};
+    \draw[spacecadet, thin, ->] (-1.7,0) -- (1.9,0) node[right,font=\small] {$\ket{+}$};
+    \draw[spacecadet, thin, ->] (0.9,-0.3) -- (-1.1,0.37) node[left,font=\small] {$\ket{+i}$};
+    % South pole label
+    \node[below,font=\small] at (0,-1.7) {$\ket{1}$};
+  \end{scope}
+}
+
+\endinput
