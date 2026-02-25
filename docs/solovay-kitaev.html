@@ -355,49 +355,84 @@ canvas {
     ctx.fill();
   }
 
+  // Adaptive viewport: zooms in to keep the current error visible
+  function computeViewport(depth) {
+    const lv = levels[Math.min(depth, levels.length - 1)];
+    const tx = targetRadius * Math.cos(targetAngle);
+    const ty = targetRadius * Math.sin(targetAngle);
+
+    // The "radius of interest" is the distance from target to current approx,
+    // padded so labels and arrows are visible.  At depth 0 show the full picture.
+    const eps = lv.eps;
+    const pad = Math.max(eps * 4.0, 0.002); // zoom tracks convergence with small min
+    const viewR = (depth === 0) ? 1.1 : pad;
+
+    // Center the viewport between target and current approximation
+    const vcx = tx + (lv.x - tx) * 0.3;
+    const vcy = ty + (lv.y - ty) * 0.3;
+
+    return { cx: vcx, cy: vcy, r: viewR };
+  }
+
   function drawSKSchematic() {
     const w = skC.width;
     const h = skC.height;
     skCtx.clearRect(0, 0, w, h);
 
-    const cx = w * 0.45;
-    const cy = h * 0.48;
-    const R = Math.min(w, h) * 0.38;
+    const depth = Math.min(currentDepth, levels.length - 1);
+    const vp = computeViewport(depth);
 
-    // Title on canvas
+    // Map from "world" coordinates to canvas pixels
+    const canvasCX = w * 0.45;
+    const canvasCY = h * 0.50;
+    const pixPerUnit = Math.min(w, h) * 0.38 / vp.r;
+
+    function toCanvas(wx, wy) {
+      return [
+        canvasCX + (wx - vp.cx) * pixPerUnit,
+        canvasCY - (wy - vp.cy) * pixPerUnit
+      ];
+    }
+
+    // Title
     skCtx.font = 'bold ' + Math.max(14, w*0.02) + 'px system-ui, sans-serif';
     skCtx.fillStyle = COLORS.cgblue;
     skCtx.textAlign = 'center';
-    skCtx.fillText('SU(2) near the identity (schematic)', cx, 25);
+    const zoomLabel = depth > 0 ? '  (zoom: ' + (vp.r < 0.01 ? vp.r.toExponential(1) : vp.r.toFixed(3)) + ')' : '';
+    skCtx.fillText('SU(2) near the identity' + zoomLabel, w/2, 22);
 
-    // Main circle representing a neighborhood in SU(2)
+    // The big SU(2) neighborhood circle (radius 1 in world coords)
+    const [icx, icy] = toCanvas(0, 0);
+    const circR = pixPerUnit * 1.0;
     skCtx.beginPath();
-    skCtx.arc(cx, cy, R, 0, 2*Math.PI);
+    skCtx.arc(icx, icy, circR, 0, 2*Math.PI);
     skCtx.strokeStyle = '#ccc';
-    skCtx.lineWidth = 2;
+    skCtx.lineWidth = 1.5;
     skCtx.stroke();
-    skCtx.fillStyle = 'rgba(234,237,234,0.3)';
+    skCtx.fillStyle = 'rgba(234,237,234,0.15)';
     skCtx.fill();
 
-    // Identity at center
-    skCtx.beginPath();
-    skCtx.arc(cx, cy, 4, 0, 2*Math.PI);
-    skCtx.fillStyle = '#999';
-    skCtx.fill();
-    skCtx.font = Math.max(12, w*0.016) + 'px system-ui, sans-serif';
-    skCtx.fillStyle = '#888';
-    skCtx.textAlign = 'left';
-    skCtx.fillText('I (identity)', cx + 8, cy - 5);
-
-    // Scale factor for points
-    const scale = R * 0.85;
+    // Identity at center (if visible)
+    if (icx > -50 && icx < w+50 && icy > -50 && icy < h+50) {
+      skCtx.beginPath();
+      skCtx.arc(icx, icy, 4, 0, 2*Math.PI);
+      skCtx.fillStyle = '#aaa';
+      skCtx.fill();
+      if (depth <= 1) {
+        skCtx.font = Math.max(12, w*0.016) + 'px system-ui, sans-serif';
+        skCtx.fillStyle = '#aaa';
+        skCtx.textAlign = 'left';
+        skCtx.fillText('I', icx + 8, icy - 5);
+      }
+    }
 
     // Target U
-    const tx = cx + targetRadius * Math.cos(targetAngle) * scale;
-    const ty = cy - targetRadius * Math.sin(targetAngle) * scale;
+    const tx = targetRadius * Math.cos(targetAngle);
+    const ty = targetRadius * Math.sin(targetAngle);
+    const [tpx, tpy] = toCanvas(tx, ty);
 
     skCtx.beginPath();
-    skCtx.arc(tx, ty, 7, 0, 2*Math.PI);
+    skCtx.arc(tpx, tpy, 7, 0, 2*Math.PI);
     skCtx.fillStyle = COLORS.target;
     skCtx.fill();
     skCtx.strokeStyle = '#fff';
@@ -406,117 +441,106 @@ canvas {
     skCtx.font = 'bold ' + Math.max(13, w*0.018) + 'px system-ui, sans-serif';
     skCtx.fillStyle = COLORS.target;
     skCtx.textAlign = 'left';
-    skCtx.fillText('U (target)', tx + 12, ty - 5);
+    skCtx.fillText('U (target)', tpx + 12, tpy - 8);
 
-    const depth = Math.min(currentDepth, levels.length - 1);
-
-    // Draw all previous levels (faded)
+    // Draw all levels up to current depth
     for (let i = 0; i <= depth; i++) {
       const lv = levels[i];
-      const lx = cx + lv.x * scale;
-      const ly = cy - lv.y * scale;
-      const alpha = (i < depth) ? 0.25 : 1.0;
+      const [lx, ly] = toCanvas(lv.x, lv.y);
+      const isCurrent = (i === depth);
+      const isPrev = (i === depth - 1 && depth > 0);
 
-      // Error circle (schematic)
-      if (lv.eps * scale > 2) {
+      // Error circle around approximation
+      const epsPixels = lv.eps * pixPerUnit * 0.5;
+      if (epsPixels > 1.5) {
         skCtx.beginPath();
-        skCtx.arc(lx, ly, lv.eps * scale * 0.5, 0, 2*Math.PI);
-        skCtx.strokeStyle = i < depth
-          ? 'rgba(0,143,168,' + (0.15) + ')'
-          : 'rgba(0,124,165,0.3)';
-        skCtx.setLineDash([3,3]);
-        skCtx.lineWidth = 1;
+        skCtx.arc(lx, ly, epsPixels, 0, 2*Math.PI);
+        skCtx.strokeStyle = isCurrent
+          ? 'rgba(0,124,165,0.35)'
+          : 'rgba(0,143,168,0.12)';
+        skCtx.setLineDash([4,3]);
+        skCtx.lineWidth = isCurrent ? 1.5 : 1;
         skCtx.stroke();
         skCtx.setLineDash([]);
       }
 
-      // Residual arrow from U_n to U (the error Delta)
-      if (i <= depth && i > 0) {
+      // Residual arrow from previous U_{n-1} to target U
+      if (i > 0) {
         const prevLv = levels[i-1];
-        const plx = cx + prevLv.x * scale;
-        const ply = cy - prevLv.y * scale;
+        const [plx, ply] = toCanvas(prevLv.x, prevLv.y);
 
-        // Show residual Delta = U * U_{n-1}^dag
-        skCtx.globalAlpha = (i === depth) ? 0.8 : 0.15;
-        drawArrowXY(skCtx, plx, ply, tx, ty, COLORS.banana, 2, 8, [5,3]);
+        skCtx.globalAlpha = isCurrent ? 0.8 : 0.12;
+        drawArrowXY(skCtx, plx, ply, tpx, tpy, COLORS.banana, 2, 8, [5,3]);
 
-        if (i === depth) {
-          // V and W decomposition arrows (schematic group commutator)
-          const midX = (plx + tx) / 2;
-          const midY = (ply + ty) / 2;
-          const perpX = -(ty - ply) * 0.35;
-          const perpY = (tx - plx) * 0.35;
+        // V and W decomposition arrows for the current level
+        if (isCurrent) {
+          const midX = (plx + tpx) / 2;
+          const midY = (ply + tpy) / 2;
+          const perpX = -(tpy - ply) * 0.35;
+          const perpY = (tpx - plx) * 0.35;
 
-          // V arrow
           drawArrowXY(skCtx, plx, ply, midX + perpX, midY + perpY, COLORS.vColor, 2.5, 8);
-          // W arrow
-          drawArrowXY(skCtx, midX + perpX, midY + perpY, tx, ty, COLORS.wColor, 2.5, 8);
+          drawArrowXY(skCtx, midX + perpX, midY + perpY, tpx, tpy, COLORS.wColor, 2.5, 8);
 
-          // Labels
           skCtx.font = 'bold ' + Math.max(11, w*0.015) + 'px system-ui, sans-serif';
           skCtx.fillStyle = COLORS.vColor;
           skCtx.textAlign = 'center';
-          skCtx.fillText('V', midX + perpX * 0.5 - 10, midY + perpY * 0.5 - 8);
+          skCtx.fillText('V', midX + perpX*0.5 - 10, midY + perpY*0.5 - 8);
           skCtx.fillStyle = COLORS.wColor;
-          skCtx.fillText('W', midX + perpX * 0.5 + (tx - midX)*0.5 + 10, midY + perpY*0.5 + (ty - midY)*0.5 - 8);
+          skCtx.fillText('W', midX + perpX*0.5 + (tpx-midX)*0.5 + 10,
+                              midY + perpY*0.5 + (tpy-midY)*0.5 - 8);
 
-          // Delta label
           skCtx.fillStyle = '#8a7000';
           skCtx.font = Math.max(11, w*0.014) + 'px system-ui, sans-serif';
-          const dMidX = (plx + tx) / 2;
-          const dMidY = (ply + ty) / 2;
-          skCtx.fillText('\u0394 = U\u00b7U\u2099\u208B\u2081\u2020', dMidX - 5, dMidY + 18);
+          skCtx.fillText('\u0394', (plx+tpx)/2 - 5, (ply+tpy)/2 + 18);
         }
         skCtx.globalAlpha = 1;
       }
 
-      // Approximation point U_n
+      // Approximation dot U_n
       skCtx.beginPath();
-      skCtx.arc(lx, ly, i === depth ? 6 : 4, 0, 2*Math.PI);
-      skCtx.fillStyle = i === depth ? COLORS.cgblue : 'rgba(0,143,168,0.35)';
+      skCtx.arc(lx, ly, isCurrent ? 6 : 4, 0, 2*Math.PI);
+      skCtx.fillStyle = isCurrent ? COLORS.cgblue : 'rgba(0,143,168,0.3)';
       skCtx.fill();
-      if (i === depth) {
+      if (isCurrent) {
         skCtx.strokeStyle = '#fff';
         skCtx.lineWidth = 2;
         skCtx.stroke();
       }
 
       // Label
-      if (i === depth || (i === depth - 1 && depth > 0)) {
-        skCtx.font = (i === depth ? 'bold ' : '') + Math.max(12, w*0.016) + 'px system-ui, sans-serif';
-        skCtx.fillStyle = i === depth ? COLORS.cgblue : 'rgba(0,143,168,0.5)';
+      if (isCurrent || isPrev) {
+        const sub = String.fromCharCode(8320 + i);
+        skCtx.font = (isCurrent ? 'bold ' : '') + Math.max(12, w*0.016) + 'px system-ui, sans-serif';
+        skCtx.fillStyle = isCurrent ? COLORS.cgblue : 'rgba(0,143,168,0.5)';
         skCtx.textAlign = 'right';
-        const labelText = 'U' + String.fromCharCode(8320 + i);
-        skCtx.fillText(labelText, lx - 10, ly + (i === depth ? 5 : 3));
+        skCtx.fillText('U' + sub, lx - 10, ly + 5);
       }
     }
 
-    // Connection line from current approx to target (error)
-    if (depth >= 0) {
+    // Distance line from current approx to target
+    {
       const lv = levels[depth];
-      const lx = cx + lv.x * scale;
-      const ly = cy - lv.y * scale;
-
-      // Draw double-headed distance indicator
+      const [lx, ly] = toCanvas(lv.x, lv.y);
       skCtx.beginPath();
       skCtx.setLineDash([2,2]);
       skCtx.moveTo(lx, ly);
-      skCtx.lineTo(tx, ty);
+      skCtx.lineTo(tpx, tpy);
       skCtx.strokeStyle = 'rgba(231,76,60,0.4)';
       skCtx.lineWidth = 1;
       skCtx.stroke();
       skCtx.setLineDash([]);
 
-      // eps label near midpoint
-      const emx = (lx + tx) / 2;
-      const emy = (ly + ty) / 2;
+      const emx = (lx + tpx) / 2;
+      const emy = (ly + tpy) / 2;
       skCtx.font = Math.max(11, w*0.014) + 'px monospace';
       skCtx.fillStyle = COLORS.target;
       skCtx.textAlign = 'center';
-      skCtx.fillText('\u03B5' + String.fromCharCode(8320 + depth) + ' = ' + lv.eps.toExponential(2), emx, emy - 10);
+      skCtx.fillText('\u03B5' + String.fromCharCode(8320 + depth)
+        + ' = ' + lv.eps.toExponential(2), emx, emy - 10);
     }
 
-    // VWV†W† annotation
+    // Annotation
     skCtx.font = Math.max(12, w*0.016) + 'px system-ui, sans-serif';
     skCtx.fillStyle = '#666';
     skCtx.textAlign = 'left';
