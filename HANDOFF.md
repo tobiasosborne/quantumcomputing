@@ -4,18 +4,22 @@
 
 Course material complete: 3 lectures + unified exercise sheet + full solutions.
 Video material downloaded and transcribed.
+GitHub Pages website live with interactive visualizations.
+
+- **GitHub repo**: https://github.com/tobiasosborne/quantumcomputing
+- **GitHub Pages**: https://tobiasosborne.github.io/quantumcomputing/
 
 ## Source Material
 
 - **Original notes**: 6 LaTeX files in `qc-trapped-ions-notes/` (3 lectures + 3 exercise sheets)
   from the course "Quantencomputing und Quantenlogik mit gespeicherten Ionen" (2022-2023)
 - **Video**: "Quantum computing basics: What is quantum advantage?" by T.J. Osborne & Michael Walter
-  - Downloaded to `video/` with 12 regular screenshots
+  - Downloaded to `video/` (gitignored, ~518 MB) with 12 regular screenshots
   - Transcript in `transcripts/quantum_advantage_video.srt` (raw) and `transcripts/quantum_advantage_clean.txt` (cleaned)
 
 ## Content
 
-### Lecture Notes (`latex/QuantumComputing.tex`)
+### Lecture Notes (`latex/QuantumComputing.tex`, 14 pages)
 
 | Lecture | File | Topic | Key additions from video |
 |---------|------|-------|-------------------------|
@@ -23,12 +27,12 @@ Video material downloaded and transcribed.
 | 2 | `lectures/lec02.tex` | Quantum algorithms (Deutsch-Jozsa, Grover) | Quantum advantage taxonomy (from video), phase kickback intuition, geometric Grover analysis with TikZ, BBBV optimality remark |
 | 3 | `lectures/lec03.tex` | Trotterization and quantum simulation | Exponential wall intuition, higher-order formulas, advanced methods survey (QSVT, LCU, qDRIFT), Trotter error bound |
 
-### Exercise Sheet (`latex/Exercises.tex`)
+### Exercise Sheet (`latex/Exercises.tex`, 2 pages)
 
 Single unified sheet with 14 exercises across three parts, no dates or deadlines.
 Includes one computational exercise (Trotter error analysis in Julia).
 
-### Solutions (`latex/solutions/Solutions.tex`)
+### Solutions (`latex/solutions/Solutions.tex`, 7 pages)
 
 Complete model solutions for all exercises including:
 - Truth tables and circuit diagrams
@@ -42,6 +46,43 @@ Complete model solutions for all exercises including:
 |--------|---------|
 | `trotter_ising.jl` | Trotter error analysis for 4-qubit Ising model |
 | `grover_demo.jl` | Step-by-step Grover's algorithm demonstration |
+
+## GitHub Pages Website (`docs/`)
+
+All lectures converted to HTML via pandoc with custom Lua filter and MathJax.
+Solutions are **not** included on the website.
+
+### Lecture Pages
+
+| Page | Source | Content |
+|------|--------|---------|
+| `lec01.html` | `lectures/lec01.tex` | Quantum circuits — foldable intuition/historical boxes, MathJax equations |
+| `lec02.html` | `lectures/lec02.tex` | Quantum algorithms — Deutsch-Jozsa, Grover's algorithm |
+| `lec03.html` | `lectures/lec03.tex` | Quantum simulation — Lie-Trotter, Trotterization |
+
+### Interactive Visualizations
+
+| Page | Description |
+|------|-------------|
+| `bloch-sphere.html` | 3D draggable Bloch sphere with gate buttons (X, Y, Z, H, S, T), smooth animation, preset states, Bloch vector coordinates |
+| `grover-visualizer.html` | Geometric view of Grover's algorithm in the |G⟩/|B⟩ plane; step-by-step reflections, probability plot, auto-run, configurable N and t |
+| `solovay-kitaev.html` | Recursive gate compilation on SU(2) based on Dawson-Nielsen (arXiv:quant-ph/0505030); adaptive zoom follows convergence, log-scale error plot, group commutator decomposition display |
+
+### Web Conversion Pipeline (`web/`)
+
+| File | Role |
+|------|------|
+| `preprocess.py` | Expands QC macros (Dirac notation, gate names, etc.) for pandoc |
+| `qc-filter.lua` | Pandoc Lua filter mapping custom LaTeX environments to styled HTML (foldable details/summary for intuition, historical, keyresult, algorithmbox; styled divs for definition, theorem, exercise, remark) |
+| `template.html` | MathJax 3 + CSS template with nav bar, fold/unfold controls, responsive layout |
+
+To regenerate HTML from LaTeX:
+```bash
+python3 web/preprocess.py < latex/lectures/lec01.tex | \
+  pandoc -f latex -t html --lua-filter=web/qc-filter.lua \
+  --template=web/template.html --metadata title="Quantum Circuits" \
+  -o docs/lec01.html
+```
 
 ## Architecture
 
@@ -88,6 +129,7 @@ Follows the same three-tier style system as the General Relativity project:
 
 ## Video Material
 
+- **Video file**: `video/` (gitignored, ~518 MB webm)
 - **12 screenshots** at 5-minute intervals in `video/screenshot_*.jpg`
 - **Raw transcript**: `transcripts/quantum_advantage_video.srt` (26025 lines)
 - **Clean transcript**: `transcripts/quantum_advantage_clean.txt`
@@ -99,7 +141,8 @@ Follows the same three-tier style system as the General Relativity project:
 
 ## Future Work
 
-- Interactive HTML visualizations (Bloch sphere, circuit simulator, Grover animation, Trotter convergence)
-- Additional TikZ figures for all embedded images
-- Web conversion pipeline (pandoc + MathJax, as in GR project)
+- Additional TikZ figures to replace `[TikZ diagram — see PDF]` placeholders in HTML
+- Trotter convergence interactive visualization
+- Quantum circuit builder/simulator visualization
 - Additional lectures on: quantum error correction, variational algorithms, quantum phase estimation
+- Full web conversion of exercise sheet (without solutions)
