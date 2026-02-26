@@ -11,7 +11,9 @@
 
 # Compiled PDFs (regenerate with build.sh)
 latex/*.pdf
-latex/solutions/*.pdf
+
+# Solutions (kept local, not published)
+latex/solutions/
 
 # Video files (too large for git)
 video/*.webm
