@@ -2,9 +2,10 @@
 
 ## Status
 
-Course material complete: 3 lectures + unified exercise sheet + full solutions.
+Course material complete: 3 lectures + unified exercise sheet + full solutions (local only).
 Video material downloaded and transcribed.
 GitHub Pages website live with interactive visualizations.
+Solutions removed from repository (gitignored, kept locally).
 
 - **GitHub repo**: https://github.com/tobiasosborne/quantumcomputing
 - **GitHub Pages**: https://tobiasosborne.github.io/quantumcomputing/
@@ -19,20 +20,20 @@ GitHub Pages website live with interactive visualizations.
 
 ## Content
 
-### Lecture Notes (`latex/QuantumComputing.tex`, 14 pages)
+### Lecture Notes (`latex/QuantumComputing.tex`, 17 pages)
 
 | Lecture | File | Topic | Key additions from video |
 |---------|------|-------|-------------------------|
-| 1 | `lectures/lec01.tex` | Quantum circuits and the circuit model | Historical box on Feynman/Deutsch, Bloch sphere intuition, TikZ circuit diagrams, entanglement intuition, Solovay-Kitaev theorem |
+| 1 | `lectures/lec01.tex` | Quantum circuits and the circuit model | Historical box on Feynman/Deutsch, Bloch sphere intuition, TikZ circuit diagrams, entanglement intuition, Solovay-Kitaev theorem, no-cloning remark, {H,T,CNOT} discrete universal set, expanded two-level decomposition with Givens rotations, worked examples (cyclic permutation decomposition, SWAP via Gray codes with circuit diagram) |
 | 2 | `lectures/lec02.tex` | Quantum algorithms (Deutsch-Jozsa, Grover) | Quantum advantage taxonomy (from video), phase kickback intuition, geometric Grover analysis with TikZ, BBBV optimality remark |
-| 3 | `lectures/lec03.tex` | Trotterization and quantum simulation | Exponential wall intuition, higher-order formulas, advanced methods survey (QSVT, LCU, qDRIFT), Trotter error bound |
+| 3 | `lectures/lec03.tex` | Trotterization and quantum simulation | Exponential wall intuition, higher-order formulas, advanced methods survey (QSVT, LCU, qDRIFT), Trotter error bound with proof sketch, expanded Lie-Trotter proof (telescoping identity), expanded commuting case proof (ODE uniqueness), symmetrization intuition for Suzuki-Trotter, recursive higher-order formula |
 
 ### Exercise Sheet (`latex/Exercises.tex`, 2 pages)
 
 Single unified sheet with 14 exercises across three parts, no dates or deadlines.
 Includes one computational exercise (Trotter error analysis in Julia).
 
-### Solutions (`latex/solutions/Solutions.tex`, 7 pages)
+### Solutions (`latex/solutions/Solutions.tex`, 7 pages) — **local only, gitignored**
 
 Complete model solutions for all exercises including:
 - Truth tables and circuit diagrams
@@ -139,9 +140,18 @@ Follows the same three-tier style system as the General Relativity project:
   - Query model & oracle motivation → Lecture 2 definitions
   - Deutsch's problem preview → Lecture 2 algorithm
 
+## Recent Changes
+
+- Solutions removed from GitHub repository (gitignored) to prevent student copying
+- Lecture notes reviewed, errors fixed, proofs expanded (14 → 17 pages):
+  - **Lec 1**: Added no-cloning theorem, identified {H,T,CNOT} as discrete universal set, expanded two-level decomposition with explicit Givens rotation formula, expanded Gray code circuit construction, added worked examples (3×3 cyclic permutation decomposition, SWAP gate via Gray codes with circuit diagram)
+  - **Lec 2**: Fixed HHL year inconsistency (2008 → 2009)
+  - **Lec 3**: Fixed gate count error (2^{2^n} → 4^n), expanded commuting Hamiltonian proof (ODE uniqueness argument), filled gap in Lie-Trotter proof (telescoping identity), added Trotter error bound proof sketch, defined h_max notation, added symmetrization intuition for second-order Suzuki-Trotter, added recursive higher-order Suzuki formula
+
 ## Future Work
 
 - ~~Additional TikZ figures to replace `[TikZ diagram — see PDF]` placeholders in HTML~~ ✓ All 8 TikZ placeholders replaced with inline SVG diagrams
+- Regenerate HTML pages from updated LaTeX (proofs have been expanded)
 - Trotter convergence interactive visualization
 - Quantum circuit builder/simulator visualization
 - Additional lectures on: quantum error correction, variational algorithms, quantum phase estimation

@@ -88,6 +88,22 @@ third operation missing, not really a logic gate at all, is to allow the
 preparation of extra \emph{ancilla} or \emph{work bits}, to allow extra
 working space during the computation.
 
+\begin{remark}[No-cloning in quantum mechanics]
+  In classical computing, $\textsc{fanout}$ (copying a bit) is
+  straightforward.  In quantum mechanics, however, the \emph{no-cloning
+    theorem} states that there is no unitary operation mapping
+  $\ket{\psi}\ket{0}\mapsto\ket{\psi}\ket{\psi}$ for all states
+  $\ket{\psi}$.  The proof is elementary: if such a unitary $U$ existed,
+  then for two states $\ket{\phi}$, $\ket{\psi}$ we would have
+  $U\ket{\phi}\ket{0} = \ket{\phi}\ket{\phi}$ and
+  $U\ket{\psi}\ket{0} = \ket{\psi}\ket{\psi}$.  Taking the inner product:
+  $\braket{\phi}{\psi} = \braket{\phi}{\psi}^2$, which forces
+  $\braket{\phi}{\psi}\in\{0,1\}$---so $U$ can only clone orthogonal or
+  identical states, not arbitrary ones.
+  The impossibility of cloning is a fundamental constraint that distinguishes
+  quantum circuits from classical ones.
+\end{remark}
+
 \subsubsection{Universality of classical gates}
 
 Just a few fixed gates can be used to compute any function
@@ -322,6 +338,12 @@ arbitrary accuracy by a quantum circuit involving only those gates.
   experimental focus on implementing such gates.
 \end{keyresult}
 
+In particular, the set $\{H, T, \CNOT\}$ is a widely used \emph{discrete}
+universal gate set: $H$ and $T$ generate a dense subset of $\SU{2}$ (the
+proof uses the irrationality of $\pi^{-1}\arccos(3/\sqrt{8})$), and
+combining with $\CNOT$ gives universality for all $n$-qubit unitaries via
+the Solovay-Kitaev theorem (Theorem~\ref{thm:SK}).
+
 The proof proceeds in two steps:
 
 \paragraph{Step 1: Two-level unitary gates are universal.}
@@ -338,10 +360,61 @@ The essential idea may be understood by considering $U \in \SU{3}$:
     c & f & j
   \end{pmatrix}.
 \end{equation}
-One finds two-level unitary matrices $U_1$, $U_2$, $U_3$ such that
-$U_3 U_2 U_1 U = \I$, whence $U = U_1^\dagger U_2^\dagger U_3^\dagger$.
-In general, an element of $\SU{d}$ can be written as a product of $d(d-1)/2$
-two-level unitaries.
+We construct two-level unitaries that successively zero out entries in each
+column, analogous to Gaussian elimination but with unitary row operations.
+
+\textbf{Column 1.} If $b\neq 0$, define a two-level unitary $U_1$ acting
+on the $(1,2)$ subspace by the $2\times 2$ block
+\[
+  \widetilde{U}_1 = \frac{1}{\sqrt{|a|^2+|b|^2}}
+  \begin{pmatrix} a^* & b^* \\ -b & a \end{pmatrix},
+\]
+so $U_1 U$ has a zero in position $(2,1)$. (If $b=0$ already, take
+$U_1=\I$.) Next, if the $(3,1)$ entry of $U_1 U$ is nonzero, define
+$U_2$ acting on the $(1,3)$ subspace to zero it out.  After $U_2 U_1 U$,
+the first column has the form $(e^{i\phi},0,0)^T$.  By unitarity, this
+forces $U_2 U_1 U$ to be block-diagonal: a phase times the identity on
+component~$1$ and a $2\times 2$ unitary on the $(2,3)$ subspace.  A third
+two-level unitary $U_3$ acting on the $(2,3)$ subspace inverts this block,
+giving $U_3 U_2 U_1 U = \I$ and hence
+$U = U_1^\dagger U_2^\dagger U_3^\dagger$.
+
+\textbf{General case.}
+For $U\in\SU{d}$, the same strategy reduces column $1$ to
+$(1,0,\ldots,0)^T$ using at most $d-1$ two-level unitaries (one for each
+sub-diagonal entry).  The result is a block-diagonal matrix with a
+$(d-1)\times(d-1)$ unitary block, which is reduced inductively.  The total
+count is $(d-1)+(d-2)+\cdots+1 = d(d-1)/2$ two-level unitaries.
+
+\begin{example}[Decomposing a $3\times 3$ permutation matrix]\label{ex:two-level-3x3}
+  Consider the cyclic permutation
+  \[
+    U = \begin{pmatrix} 0 & 0 & 1 \\ 1 & 0 & 0 \\ 0 & 1 & 0 \end{pmatrix},
+  \]
+  which maps $\ket{1}\to\ket{2}\to\ket{3}\to\ket{1}$.  The first column is
+  $(0,1,0)^T$, so $a=0$, $b=1$.  The formula gives
+  $\widetilde{U}_1 = \bigl(\begin{smallmatrix} 0 & 1 \\ -1 & 0
+  \end{smallmatrix}\bigr)$, hence
+  \[
+    U_1 = \begin{pmatrix} 0 & 1 & 0 \\ -1 & 0 & 0 \\ 0 & 0 & 1
+    \end{pmatrix}, \qquad
+    U_1 U = \begin{pmatrix} 1 & 0 & 0 \\ 0 & 0 & -1 \\ 0 & 1 & 0
+    \end{pmatrix}.
+  \]
+  The first column is now $(1,0,0)^T$, so $U_2=\I$.  The remaining
+  $2\times 2$ block $\bigl(\begin{smallmatrix} 0 & -1 \\ 1 & 0
+  \end{smallmatrix}\bigr)$ is inverted by
+  $U_3 = \diag\bigl(1,\,\bigl(\begin{smallmatrix} 0 & 1 \\ -1 & 0
+  \end{smallmatrix}\bigr)\bigr)$, giving $U_3 U_1 U = \I$ and hence
+  \[
+    U = U_1^\dagger\, U_3^\dagger
+    = \underbrace{\begin{pmatrix} 0 & -1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1
+    \end{pmatrix}}_{\text{acts on $(1,2)$}}
+    \underbrace{\begin{pmatrix} 1 & 0 & 0 \\ 0 & 0 & -1 \\ 0 & 1 & 0
+    \end{pmatrix}}_{\text{acts on $(2,3)$}},
+  \]
+  a product of two two-level unitaries.
+\end{example}
 
 \paragraph{Step 2: Two-level unitaries from single-qubit and $\CNOT$ gates.}
 Any two-level unitary on $n$ qubits can be implemented using single-qubit
@@ -362,21 +435,85 @@ $\mathbf{t} = 001$, we have the Gray code $111 \to 011 \to 001$.
 Let $g_1, \ldots, g_m$ be the elements of a Gray code connecting
 $\mathbf{s}$ and $\mathbf{t}$, with $g_1 = \mathbf{s}$ and
 $g_m = \mathbf{t}$.  Note that $m \le n+1$ since $\mathbf{s}$ and
-$\mathbf{t}$ can differ in at most $n$ positions.  The quantum circuit for
-the two-level unitary proceeds by:
-\begin{enumerate}
-  \item Performing controlled swaps $\ket{g_1}\to\ket{g_2}\to\cdots\to\ket{g_{m-1}}$.
-  \item Applying a controlled-$\widetilde{U}$ operation at the single bit
-    where $g_{m-1}$ and $g_m$ differ.
-  \item Undoing the controlled swaps from step 1.
-\end{enumerate}
+$\mathbf{t}$ can differ in at most $n$ positions.
 
-By combining all of these results, an arbitrary unitary on $n$ qubits can be
-implemented using $\bigO{n^2 4^n}$ single-qubit and $\CNOT$ gates.
+Now consider a two-level unitary that acts as the $2\times 2$ block
+$\widetilde{U}$ on the subspace $\vspan\{\ket{\mathbf{s}},\ket{\mathbf{t}}\}$
+and as the identity elsewhere.  The circuit construction proceeds in three
+stages:
+\begin{enumerate}
+  \item \textbf{Transfer via $\CNOT$s}: For each step $g_i\to g_{i+1}$ in
+    the Gray code (for $i=1,\ldots,m-2$), apply a $\CNOT$ controlled on
+    the bits of $g_i$ that target the single bit that changes.  This maps
+    $\ket{\mathbf{s}}\mapsto \ket{g_{m-1}}$, which differs from
+    $\mathbf{t}$ in only one bit (say bit $p$), while leaving all other
+    basis states unchanged.
+  \item \textbf{Controlled-$\widetilde{U}$}: Apply $\widetilde{U}$ to qubit
+    $p$, controlled on the remaining $n-1$ qubits matching the
+    corresponding bits of $g_{m-1}$.  This implements $\widetilde{U}$ on
+    the subspace $\vspan\{\ket{g_{m-1}},\ket{\mathbf{t}}\}$.
+  \item \textbf{Undo transfers}: Reverse the $\CNOT$ sequence from step 1.
+\end{enumerate}
+Each step uses $\bigO{n}$ elementary gates (the controlled-$\widetilde{U}$
+can be decomposed into $\bigO{n}$ single-qubit and $\CNOT$ gates by standard
+techniques), so each two-level unitary costs $\bigO{n}$ gates.
+
+\begin{example}[The $\SWAP$ gate from Gray codes]\label{ex:swap-gray}
+  The $\SWAP$ gate on $n=2$ qubits exchanges $\ket{01}$ and $\ket{10}$,
+  leaving $\ket{00}$ and $\ket{11}$ unchanged---a two-level unitary with
+  $\widetilde{U} = X$ on $\vspan\{\ket{01},\ket{10}\}$.  We apply the
+  construction above with $\mathbf{s}=01$ and $\mathbf{t}=10$.
+
+  \textbf{Gray code}: $01 \to 11 \to 10$ (flip bit~1, then bit~2), so
+  $g_1=01$, $g_2=11$, $g_3=10$.
+
+  \textbf{Transfer} ($g_1\to g_2$): Bit~1 changes.  Apply $\CNOT_{21}$
+  (qubit~2 controls qubit~1).  This maps $\ket{01}\to\ket{11}$ while
+  $\ket{10}\to\ket{10}$ (unaffected since qubit~2 is $0$).
+
+  \textbf{Controlled-$X$}: Now $g_2=11$ and $g_3=10$ differ only in bit~2.
+  Apply $X$ on qubit~2 controlled by qubit~1, i.e., $\CNOT_{12}$.
+
+  \textbf{Undo transfer}: Apply $\CNOT_{21}$ again.
+
+  The full circuit is $\CNOT_{21}\cdot\CNOT_{12}\cdot\CNOT_{21}$:
+  \begin{center}
+  \begin{tikzpicture}
+    \qcwires{2}{0}{8}
+    \qclabel{1}{q_1}
+    \qclabel{2}{q_2}
+    % CNOT_21: q2 controls q1
+    \qcctrl{1.5}{2}
+    \qccnottarg{1.5}{1}
+    \qcctrlline{1.5}{1}{2}
+    % CNOT_12: q1 controls q2
+    \qcctrl{4}{1}
+    \qccnottarg{4}{2}
+    \qcctrlline{4}{1}{2}
+    % CNOT_21: q2 controls q1
+    \qcctrl{6.5}{2}
+    \qccnottarg{6.5}{1}
+    \qcctrlline{6.5}{1}{2}
+  \end{tikzpicture}
+  \end{center}
+  This recovers the well-known three-$\CNOT$ decomposition of $\SWAP$.
+  The reader can verify the action on all four basis states: e.g.,
+  $\ket{01}\xrightarrow{\CNOT_{21}}\ket{11}
+  \xrightarrow{\CNOT_{12}}\ket{10}
+  \xrightarrow{\CNOT_{21}}\ket{10}$,
+  and $\ket{10}\xrightarrow{\CNOT_{21}}\ket{10}
+  \xrightarrow{\CNOT_{12}}\ket{11}
+  \xrightarrow{\CNOT_{21}}\ket{01}$.
+\end{example}
+
+By combining both steps: we need $d(d-1)/2$ two-level unitaries (with
+$d=2^n$), each costing $\bigO{n}$ gates.  Thus an arbitrary unitary on $n$
+qubits can be implemented using $\bigO{n\cdot 4^n}$ single-qubit and $\CNOT$
+gates.
 
 \begin{remark}
-  The $\bigO{n^2 4^n}$ gate count is unavoidable in the worst case (since
-  there are roughly $4^n$ parameters in an $n$-qubit unitary), but for
-  specific unitaries arising in algorithms, far more efficient decompositions
-  exist.
+  The exponential $\bigO{n\cdot 4^n}$ gate count is unavoidable in the
+  worst case (a counting argument shows that most $n$-qubit unitaries
+  require $\Omega(4^n)$ gates), but for specific unitaries arising in
+  algorithms, far more efficient decompositions exist.
 \end{remark}

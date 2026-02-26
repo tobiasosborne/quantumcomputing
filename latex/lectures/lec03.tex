@@ -95,7 +95,8 @@ corresponding to the solution of the Schrödinger equation~\eqref{eq:schrodinger
 The objective is to implement the unitary $U(t) \equiv e^{-iHt}$ with quantum gates.
 
 If we na\"ively applied the universality theorem from Section~\ref{sec:circuits},
-we would need roughly $2^{2^n}$ elementary gates---and even computing
+we would need roughly $4^n$ elementary gates (since a general $n$-qubit
+unitary has $\sim 4^n$ real parameters)---and even computing
 a single matrix element of $U(t)$ requires solving the Schrödinger equation
 in the first place.  We need a fundamentally different strategy.
 
@@ -116,10 +117,23 @@ in the first place.  We need a fundamentally different strategy.
   for all $t$.
 \end{proposition}
 \begin{proof}
-  When all terms commute, the exponential of a sum equals the product of
-  exponentials.  This follows from the Baker-Campbell-Hausdorff formula,
-  which states $e^A e^B = e^{A+B+\frac{1}{2}\comm{A}{B}+\cdots}$;
-  all correction terms vanish when $\comm{A}{B}=0$.
+  It suffices to show $e^{A+B}=e^A e^B$ when $\comm{A}{B}=0$; the general
+  case follows by induction on $L$.  Define the matrix-valued functions
+  $f(s) = e^{(A+B)s}$ and $g(s) = e^{As}\,e^{Bs}$.  Both satisfy $f(0)=g(0)=\I$.
+  Differentiating:
+  \[
+    f'(s) = (A+B)\,f(s).
+  \]
+  For $g$, since $\comm{A}{B}=0$ implies $\comm{A}{e^{Bs}}=0$ (expand
+  $e^{Bs}$ as a power series; $A$ commutes with every term $B^k$), we get
+  \[
+    g'(s) = A\,e^{As}\,e^{Bs} + e^{As}\,B\,e^{Bs}
+    = (A+B)\,g(s).
+  \]
+  Since $f$ and $g$ satisfy the same linear ODE $y'=(A+B)y$ with the same
+  initial condition $y(0)=\I$, uniqueness of solutions gives $f(s)=g(s)$
+  for all $s$.  Setting $s=t$ and $A=-ih_j t$, $B=-i\sum_{k\neq j}h_k t$
+  (with appropriate rescaling) yields the result.
 \end{proof}
 
 \subsubsection{The Lie-Trotter formula}
@@ -134,23 +148,39 @@ in the first place.  We need a fundamentally different strategy.
 \end{theorem}
 
 \begin{proof}
-  By the Taylor theorem with remainder,
+  Write $\delta = t/n$.  By Taylor expansion to second order,
   \begin{equation}
-    e^{iA\frac{t}{n}} = \I + \frac{1}{n} iAt
-    + \bigO{\frac{|t|^2\norm{A}^2}{n^2}},
+    e^{iA\delta} = \I + iA\delta - \tfrac{1}{2}A^2\delta^2
+    + \bigO{\norm{A}^3\delta^3},
   \end{equation}
-  so that
-  \begin{equation}
-    e^{iA\frac{t}{n}}e^{iB\frac{t}{n}} = \I + \frac{1}{n} i(A+B)t
-    + \bigO{\frac{|t|^2(\norm{A}+\norm{B})^2}{n^2}}.
+  and similarly for $e^{iB\delta}$.  Multiplying:
+  \begin{equation}\label{eq:trotter-single-step}
+    e^{iA\delta}e^{iB\delta} = \I + i(A+B)\delta
+    - \tfrac{1}{2}(A^2+2AB+B^2)\delta^2
+    + \bigO{\delta^3}.
   \end{equation}
-  Taking the $n$th power, using
-  $\frac{1}{n^k}\binom{n}{k} = \frac{1}{k!}\left(1+\bigO{\frac{1}{n}}\right)$,
-  we obtain
+  Meanwhile, $e^{i(A+B)\delta} = \I + i(A+B)\delta
+  - \frac{1}{2}(A+B)^2\delta^2 + \bigO{\delta^3}$.
+  The difference is
+  \begin{equation}\label{eq:trotter-local-error}
+    e^{i(A+B)\delta} - e^{iA\delta}e^{iB\delta}
+    = \tfrac{1}{2}\comm{A}{B}\,\delta^2 + \bigO{\delta^3},
+  \end{equation}
+  so
+  $\norm{e^{i(A+B)\delta} - e^{iA\delta}e^{iB\delta}}
+  \le C\,\delta^2$ for a constant $C$ depending on $\norm{A}$, $\norm{B}$.
+
+  To pass from one step to $n$ steps, use the \emph{telescoping identity}:
+  for any operators $P$ and $Q$,
+  \begin{equation}\label{eq:telescope}
+    P^n - Q^n = \sum_{k=0}^{n-1} P^{n-1-k}(P-Q)Q^k.
+  \end{equation}
+  Since both $P = e^{i(A+B)\delta}$ and $Q = e^{iA\delta}e^{iB\delta}$ are
+  unitary (hence $\norm{P}=\norm{Q}=1$), taking norms gives
   \begin{equation}
-    \lim_{n\rightarrow \infty}
-    \left(e^{iA\frac{t}{n}}e^{iB\frac{t}{n}}\right)^{n}
-    = \sum_{k=0}^\infty \frac{(it)^k}{k!}(A+B)^k = e^{i(A+B)t}.
+    \norm{e^{i(A+B)t} - \left(e^{iA\frac{t}{n}}e^{iB\frac{t}{n}}\right)^n}
+    \le n\cdot C\,\delta^2 = \frac{C\,t^2}{n}
+    \xrightarrow{n\to\infty} 0.
     \qedhere
   \end{equation}
 \end{proof}
@@ -167,14 +197,49 @@ computable with $\bigO{1}$ gates.
 
 \begin{keyresult}[First-order Trotter error bound]
   The first-order Trotter approximation satisfies
-  \begin{equation}
+  \begin{equation}\label{eq:trotter-error-bound}
     \norm{e^{-iHt} - \left(\prod_{j=1}^L e^{-ih_j t/n}\right)^n}
     \le \frac{t^2}{2n}\sum_{j<k}\norm{\comm{h_j}{h_k}}.
   \end{equation}
-  To achieve accuracy $\epsilon$, one needs
-  $n = \bigO{t^2 L^2 \norm{h}^2/\epsilon}$ Trotter steps, giving a total
-  gate count of $\bigO{t^2 L^3 \norm{h}^2/\epsilon}$.
+  Writing $h_{\max}\equiv \max_j\norm{h_j}$ and bounding
+  $\sum_{j<k}\norm{\comm{h_j}{h_k}} \le 2\binom{L}{2}h_{\max}^2
+  \le L^2 h_{\max}^2$, accuracy $\epsilon$ requires
+  $n = \bigO{t^2 L^2 h_{\max}^2/\epsilon}$ Trotter steps.  Each step
+  comprises $L$ local unitaries, giving a total gate count of
+  $\bigO{t^2 L^3 h_{\max}^2/\epsilon}$.
 \end{keyresult}
+
+\begin{proof}[Proof sketch]
+  \textbf{Single-step error.}
+  For two operators, the calculation in~\eqref{eq:trotter-local-error}
+  gives
+  $\norm{e^{-i(A+B)\delta} - e^{-iA\delta}e^{-iB\delta}}
+  \le \frac{\delta^2}{2}\norm{\comm{A}{B}} + \bigO{\delta^3}$.
+  This extends to $L$ operators by induction: writing
+  $H_k = \sum_{j=1}^k h_j$ and peeling off one term at a time,
+  \begin{align}
+    \norm{e^{-iH\delta} - \prod_{j=1}^L e^{-ih_j\delta}}
+    &\le \sum_{k=1}^{L-1}
+    \norm{e^{-iH_k\delta}e^{-ih_{k+1}\delta} - e^{-i(H_k+h_{k+1})\delta}}
+    \nonumber\\
+    &\le \frac{\delta^2}{2}\sum_{k=1}^{L-1}\norm{\comm{H_k}{h_{k+1}}}
+    + \bigO{\delta^3}.
+  \end{align}
+  Since $\norm{\comm{H_k}{h_{k+1}}} \le \sum_{j=1}^k \norm{\comm{h_j}{h_{k+1}}}$,
+  the single-step error is at most
+  $\frac{\delta^2}{2}\sum_{j<k}\norm{\comm{h_j}{h_k}}$ (up to
+  higher-order terms).
+
+  \textbf{Accumulation over $n$ steps.}
+  By the telescoping identity~\eqref{eq:telescope} with unitary factors
+  ($\norm{\cdot}=1$), the total error after $n$ steps with
+  $\delta=t/n$ is at most $n$ times the single-step error:
+  \[
+    n\cdot \frac{(t/n)^2}{2}\sum_{j<k}\norm{\comm{h_j}{h_k}}
+    = \frac{t^2}{2n}\sum_{j<k}\norm{\comm{h_j}{h_k}}.
+    \qedhere
+  \]
+\end{proof}
 
 \subsubsection{The quantum simulation algorithm}
 
@@ -237,15 +302,31 @@ computable with $\bigO{1}$ gates.
 \subsection{Higher-order product formulas}\label{subsec:higher-order}
 
 The first-order Trotter formula can be improved.  The \emph{second-order
-  Suzuki-Trotter} formula uses
+  Suzuki-Trotter} formula uses the \emph{symmetric} (palindromic) product
 \begin{equation}
   S_2(\Delta t) = e^{-ih_1 \Delta t/2}e^{-ih_2 \Delta t/2}\cdots
   e^{-ih_L \Delta t}\cdots e^{-ih_2 \Delta t/2}e^{-ih_1 \Delta t/2},
 \end{equation}
 which achieves error $\bigO{\Delta t^3}$ per step (compared to
 $\bigO{\Delta t^2}$ for first order), giving a total error of
-$\bigO{t^3/n^2}$ after $n$ steps.  Even higher-order formulas can be
-constructed recursively~\cite{ChildsTrotterError2021}.
+$\bigO{t^3/n^2}$ after $n$ steps.
+
+\begin{intuition}[Why symmetrization helps]
+  The key observation is that the first-order error is
+  $e^{-iA\delta}e^{-iB\delta} = e^{-i(A+B)\delta -\frac{1}{2}\comm{A}{B}\delta^2 + \cdots}$.
+  Reversing the order gives
+  $e^{-iB\delta}e^{-iA\delta} = e^{-i(A+B)\delta +\frac{1}{2}\comm{A}{B}\delta^2 + \cdots}$.
+  The leading error terms have \emph{opposite signs}.  By taking half-steps
+  in each order and combining them symmetrically, the $\delta^2$ errors
+  cancel exactly, leaving only $\bigO{\delta^3}$ corrections.  This is
+  the operator analogue of the midpoint rule improving on the Euler method
+  in numerical ODE solving.
+\end{intuition}
+
+Even higher-order formulas can be constructed recursively: Suzuki showed
+that $S_{2k}(\delta) = [S_{2k-2}(p_k\delta)]^2\, S_{2k-2}((1-4p_k)\delta)\,
+[S_{2k-2}(p_k\delta)]^2$ with $p_k = (4-4^{1/(2k-1)})^{-1}$ achieves
+error $\bigO{\delta^{2k+1}}$ per step~\cite{ChildsTrotterError2021}.
 
 
 \subsection{Advanced techniques and further reading}\label{subsec:advanced}
